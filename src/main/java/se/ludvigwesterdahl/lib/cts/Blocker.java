@@ -1,12 +1,14 @@
 package se.ludvigwesterdahl.lib.cts;
 
-// TODO: These need more information. Probably the raw field to be flexible.
-// TODO: Can we have a SimpleSkipper class that takes an identifier to skip in constructor?
-
-import java.lang.reflect.Field;
-
 public interface Blocker extends Observer {
 
-
-    boolean block(Field field);
+    /**
+     * This method is called before processing a field. It will be invoked before any
+     * method in {@link Observer}. <br/>
+     * See some implementation hints on {@link ClassToStringGenerator#addBlocker(Blocker)}.
+     *
+     * @param fieldChain the field about to be processed
+     * @return {@code true} if the field should not be processed and {@code false} otherwise
+     */
+    boolean block(CtsFieldChain fieldChain);
 }

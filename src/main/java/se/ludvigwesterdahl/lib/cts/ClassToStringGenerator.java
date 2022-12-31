@@ -1,47 +1,95 @@
 package se.ludvigwesterdahl.lib.cts;
 
-import java.util.*;
-import java.util.stream.Stream;
+import se.ludvigwesterdahl.lib.cts.strategy.GenerationStrategy;
 
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+
+/**
+ * Renaming happens first.
+ * Then embeddings. This means that an embedding can override a node.
+ * Then checking if a field is a node.
+ * Then blocking.
+ * Then notifying.
+ */
 public final class ClassToStringGenerator {
 
+    private final Class<?> rootNode;
     private final Set<Identifier> nodes;
     private final Map<Identifier, Identifier> renaming;
-    private final Map<Identifier, List<Identifier>> embeddings;
+    private final Map<Identifier, Set<Identifier>> remoteEmbeddings;
+    private final Set<Identifier> embeddings;
+    private final Set<Blocker> blockers;
+    private final Set<Observer> observers;
 
-    private ClassToStringGenerator(final Set<Identifier> nodes,
+    private ClassToStringGenerator(final Class<?> rootNode,
+                                   final Set<Identifier> nodes,
                                    final Map<Identifier, Identifier> renaming,
-                                   final Map<Identifier, List<Identifier>> embeddings) {
+                                   final Map<Identifier, Set<Identifier>> remoteEmbeddings,
+                                   final Set<Identifier> embeddings,
+                                   final Set<Blocker> blockers,
+                                   final Set<Observer> observers) {
+        this.rootNode = rootNode;
         this.nodes = nodes;
         this.renaming = renaming;
+        this.remoteEmbeddings = remoteEmbeddings;
         this.embeddings = embeddings;
+        this.blockers = blockers;
+        this.observers = observers;
     }
 
     public static ClassToStringGenerator from(final Class<?> rootNode) {
         // Compute structure based on annotations.
 
-        return new ClassToStringGenerator(new HashSet<>(), new HashMap<>(), new HashMap<>());
+        final Set<Identifier> nodes = new HashSet<>();
+        nodes.add(Identifier.newInstance(rootNode));
+
+        return new ClassToStringGenerator(rootNode,
+                nodes,
+                new HashMap<>(),
+                new HashMap<>(),
+                new HashSet<>(),
+                new HashSet<>(),
+                new HashSet<>());
     }
 
     /**
-     * Specifies that the field should be considered a node when encountered. It will traverse
-     * into that structure.
+     * Renames a node or leaf. Multiple calls with the same {@code from} will override the previous calls. <br/>
+     * However, if multiple {@code from} {@link Identifier} has been provided where one includes just the type,
+     * and others include a name. Then the most specific one will be preferred.
      *
-     * @param node the node
+     * @param from the real identifier
+     * @param to   the new identifier
      * @return this {@link ClassToStringGenerator} instance
-     * @throws NullPointerException if {@code node == null}
+     * @throws NullPointerException     if any argument is null
+     * @throws IllegalArgumentException if {@code to} does not have a name
      */
-    public ClassToStringGenerator addNode(final Identifier node) {
-        nodes.add(node);
+    public ClassToStringGenerator rename(final Identifier from, final Identifier to) {
+        Objects.requireNonNull(from);
+        Objects.requireNonNull(to);
+
+        if (to.getName().isEmpty()) {
+            throw new IllegalArgumentException("to is missing a name");
+        }
+
+        renaming.put(from, to);
 
         return this;
     }
 
-
-    public ClassToStringGenerator rename(final Identifier from, final Identifier to) {
+    /**
+     * Removes a renaming.
+     *
+     * @param from the identifier to remove
+     * @return this {@link ClassToStringGenerator} instance
+     * @throws NullPointerException if {@code from == null}
+     */
+    public ClassToStringGenerator removeRename(final Identifier from) {
         Objects.requireNonNull(from);
-        Objects.requireNonNull(to);
-        renaming.put(from, to);
+
+        renaming.remove(from);
 
         return this;
     }
@@ -49,34 +97,102 @@ public final class ClassToStringGenerator {
     /**
      * Embeds a node into another node. This can be used if you want to inject some fields or nodes into an
      * existing structure without modifying it. <br/>
-     * If the node you want to embed is a field in some class that it should be embedded into, use
+     * TODO: might not be true: Note that embeddings are only performed if no {@link Blocker} blocks the node from being entered. <br/>
+     * TODO: check this javadoc to ensure it is correct
+     * If the field you want to embed is a field in the same class that it should be embedded into, use
      * the {@link ClassToStringGenerator#embed(Identifier)} instead. <br/>
+     * Multiple calls will override previous calls, however, if multiple {@code from} {@link Identifier}
+     * has been provided as {@code toNode} where one includes just the type, and others include a name. Then
+     * the most specific one will be preferred. <br/>
+     * <b>Example</b> <br/>
+     * <pre>
+     * {@code
+     * embed(FullName.class, Identifier.newInstance(Person.class))
+     * embed(FirstName.class, Identifier.newInstance(Person.class, "erik"))
+     * embed(LastName.class, Identifier.newInstance(Person.class, "erik"))
+     * }
+     * </pre>
+     * Then the following will happen given when encountering fields. <br/>
+     * Assume the Person class looks like this. <br/>
+     * <pre>
+     * {@code
+     * public class Person {
+     *     private String ssn;
+     *     private int age;
+     * }
+     * }
+     * </pre>
+     * <pre>
+     * {@code
+     * public class SomeClass {
+     *     private Person john; // FullName.class will be embedded into Person
+     *     private Person erik; // FirstName.class and LastName.class will be embedded into Person
+     * }
+     * }
+     * </pre>
+     * What this does can be though of as the field {@code john} extending {@code Person extends FullName}
+     * and the field {@code erik} having type {@code Person extends FirstName, LastName}
+     * <p>
+     * Embeddings can also be combined with renaming to handle generics. <br/>
+     * <b>Example</b><br/>
+     * <pre>
+     * {@code
+     * rename(Identifier.newInstance(List.class, "results"), Identifier.newInstance(Person.class, "results"))
+     * embed(Identifier.newInstance(Person.class))
      *
-     * @param node   the node to embed
-     * @param toNode the destination node;
-     *               if {@code null} behaves the same as {@link ClassToStringGenerator#embed(Identifier)}
+     * public class TheClass {
+     *     private List<Person> results; // Person.class will be embedded
+     * }
+     * }
+     * </pre>
+     * Then what happens is the following. <br/> <br/>
+     * <b>Step 1 - renaming</b> <br/>
+     * <pre>
+     * {@code
+     * public class TheClass {
+     *     private Person results;
+     * }
+     * }
+     * </pre>
+     * <b>Step 2 - embedding</b> <br/>
+     * <pre>
+     * {@code
+     * public class TheClass {
+     *     private String ssn;
+     *     private int age;
+     * }
+     * }
+     * </pre>
+     *
+     * @param type   the type to embed
+     * @param toNode the destination node
      * @return this {@link ClassToStringGenerator} instance
-     * @throws NullPointerException if {@code node == null}
+     * @throws NullPointerException if any argument is null
      */
-    public ClassToStringGenerator embed(final Identifier node, final Identifier toNode) {
-        Objects.requireNonNull(node);
+    public ClassToStringGenerator embed(final Class<?> type, final Identifier toNode) {
+        Objects.requireNonNull(type);
+        Objects.requireNonNull(toNode);
 
-        embeddings.computeIfAbsent(node, ignored -> new ArrayList<>())
-                .add(toNode);
+        remoteEmbeddings.computeIfAbsent(toNode, ignored -> new HashSet<>())
+                .add(Identifier.newInstance(type));
+
         return this;
     }
 
     /**
      * Embeds a node into the parent node when encountered. It will inject all leaf/nodes into that node. <br/>
+     * TODO: might not be true: Note that embeddings are only performed if no {@link Blocker} blocks the node from being entered. <br/>
      * If you want to embed a node into a node that does not contain this node,
-     * then use {@link ClassToStringGenerator#embed(Identifier, Identifier)} instead.
+     * then use {@link ClassToStringGenerator#embed(Class, Identifier)} instead. <br/>
      *
-     * @param node the node to embed
+     * @param field the field to embed
      * @return this {@link ClassToStringGenerator} instance
-     * @throws NullPointerException if {@code node == null}
+     * @throws NullPointerException if {@code field == null}
      */
-    public ClassToStringGenerator embed(final Identifier node) {
-        return embed(node, null);
+    public ClassToStringGenerator embed(final Identifier field) {
+        Objects.requireNonNull(field);
+        embeddings.add(field);
+        return this;
     }
 
     /**
@@ -91,21 +207,250 @@ public final class ClassToStringGenerator {
         return this;
     }
 
-    public String generate() {
+    /**
+     * Specifies that the field should be considered a node when encountered. It will traverse
+     * into that structure.
+     *
+     * @param node the node
+     * @return this {@link ClassToStringGenerator} instance
+     * @throws NullPointerException if {@code node == null}
+     */
+    public ClassToStringGenerator addNode(final Identifier node) {
+        Objects.requireNonNull(node);
 
-        // Order
-        // 1. Transform names & types
-        //     (basically redirects, this is where generics are solved)
-        //     Such that Map<Map<String, String>, List<List<MyObject>>> fieldName;
-        //     can be redirected to node MyObject by specifying.
-        //     redirect(Map.class, fieldName).to(MyObject.class, newName)
-        // 3. Filters (stoppers and ignorers)
-        //    A stopper is used when encountering a node, it can either say "continue" or "stop".
-        //        This means the traversal will not be allowed to enter into the node.
-        //    An ignore is used to ignore a certain leaf (could be because it is transient, or just any other reason)
-        //    An embedding is used to pull all fields/nodes into that node.
+        nodes.add(node);
+
+        return this;
+    }
+
+    /**
+     * Removes a node. It will be considered a leaf when encountered.
+     *
+     * @param node the node to remove
+     * @return this {@link ClassToStringGenerator} instance
+     * @throws NullPointerException if {@code node == null}
+     */
+    public ClassToStringGenerator removeNode(final Identifier node) {
+        Objects.requireNonNull(node);
+
+        nodes.remove(node);
+
+        return this;
+    }
+
+    /**
+     * Adds an observer.
+     *
+     * @param observer the observer to add
+     * @return this {@link ClassToStringGenerator} instance
+     * @throws NullPointerException if {@code observer == null}
+     */
+    public ClassToStringGenerator addObserver(final Observer observer) {
+        Objects.requireNonNull(observer);
+        observers.add(observer);
+        return this;
+    }
+
+    /**
+     * Adds a blocker. This method will also call {@link ClassToStringGenerator#addObserver(Observer)}. <br/>
+     * If any {@link Blocker} blocks a field from being processed, then the rest will not be called on that field.
+     * In other words, it will short-circuit.
+     *
+     * @param blocker the blocker to add
+     * @return this {@link ClassToStringGenerator} instance
+     * @throws NullPointerException if {@code blocker == null}
+     */
+    public ClassToStringGenerator addBlocker(final Blocker blocker) {
+        Objects.requireNonNull(blocker);
+        blockers.add(blocker);
+        return addObserver(blocker);
+    }
+
+    private Identifier getIdentifier(final Class<?> type, final String name) {
+        final Identifier generalIdentifier = Identifier.newInstance(type);
+        final Identifier renamedGeneralIdentifier = renaming.get(generalIdentifier);
+        final Identifier specificIdentifier = Identifier.newInstance(type, name);
+        final Identifier renamedSpecificIdentifier = renaming.get(specificIdentifier);
+
+        if (renamedSpecificIdentifier != null) {
+            return renamedSpecificIdentifier;
+        }
+
+        if (renamedGeneralIdentifier != null) {
+            return renamedGeneralIdentifier;
+        }
+
+        return specificIdentifier;
+    }
+
+    private boolean isEmbedded(final Identifier identifier) {
+        if (embeddings.contains(identifier)) {
+            return true;
+        }
+
+        return embeddings.contains(identifier.stripName());
+    }
+
+    private boolean isNode(final Identifier identifier) {
+        if (nodes.contains(identifier)) {
+            return true;
+        }
+
+        return nodes.contains(identifier.stripName());
+    }
+
+    private Set<Identifier> getRemoteEmbeddings(final Identifier node) {
+        final Set<Identifier> specificEmbeddings = remoteEmbeddings.get(node);
+        if (specificEmbeddings != null) {
+            return specificEmbeddings;
+        }
+
+        final Set<Identifier> generalEmbeddings = remoteEmbeddings.get(node.stripName());
+        if (generalEmbeddings != null) {
+            return generalEmbeddings;
+        }
+
+        return Set.of();
+    }
+
+    private List<CtsField> getFields(final Identifier originalNode, final Identifier node) {
+        if (Objects.equals(originalNode, node)) {
+            throw new IllegalStateException("illegal loop detected");
+        }
+
+        final Identifier currentNode = node == null ? originalNode : node;
+
+        final List<CtsField> fields = new ArrayList<>();
+        for (final Field rawField : currentNode.getType().getDeclaredFields()) {
+            final Class<?> type = rawField.getType();
+            final String name = rawField.getName();
+            final int modifiers = rawField.getModifiers();
+
+            final Identifier identifier = getIdentifier(type, name);
+
+            if (isEmbedded(identifier)) {
+                final List<CtsField> embeddedFields = getFields(originalNode, identifier);
+                fields.addAll(embeddedFields);
+            } else if (isNode(identifier)) {
+                final CtsField field = CtsField.newNode(identifier, modifiers);
+                fields.add(field);
+            } else {
+                final CtsField field = CtsField.newLeaf(identifier, modifiers);
+                fields.add(field);
+            }
+        }
+
+        // Checks for any remote embeddings into this node.
+        final Set<Identifier> currentNodeRemoteEmbeddings = getRemoteEmbeddings(currentNode);
+        for (final Identifier identifier : currentNodeRemoteEmbeddings) {
+            final List<CtsField> embeddedFields = getFields(originalNode, identifier);
+            fields.addAll(embeddedFields);
+        }
+
+        return fields;
+    }
+
+    private List<CtsField> getFields(final Identifier node) {
+        return getFields(node, null);
+    }
+
+    private boolean isBlocked(final CtsFieldChain fieldChain) {
+        for (final Blocker blocker : blockers) {
+            if (blocker.block(fieldChain)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void notifyAllObservers(final BiConsumer<Observer, CtsFieldChain> consumer,
+                                    final CtsFieldChain fieldChain) {
+        for (final Observer observer : observers) {
+            consumer.accept(observer, fieldChain);
+        }
+    }
+
+    private void notifyEnterNode(CtsFieldChain nodeFieldChain) {
+        notifyAllObservers(Observer::enterNode, nodeFieldChain);
+    }
+
+    private void notifyConsumeLeaf(CtsFieldChain leafFieldChain) {
+        notifyAllObservers(Observer::consumeLeaf, leafFieldChain);
+    }
+
+    private void notifyLeaveNode(CtsFieldChain nodeFieldChain) {
+        notifyAllObservers(Observer::leaveNode, nodeFieldChain);
+    }
 
 
-        return "";
+    /*
+    private List<CtsFieldChain> generate(final CtsFieldChain currentFieldChain) {
+        final List<CtsFieldChain> fieldChains = new ArrayList<>();
+        final CtsField head = currentFieldChain.head();
+
+        if (isBlocked(head)) {
+            return fieldChains;
+        }
+
+        if (!head.isNode()) {
+            fieldChains.add(currentFieldChain);
+            notifyConsumeLeaf(head);
+            return fieldChains;
+        }
+
+        notifyEnterNode(head);
+
+        final List<CtsField> fields = getFields(head.getIdentifier());
+        final List<CtsFieldChain> nextFieldChains = currentFieldChain.appendAll(fields);
+        for (final CtsFieldChain nextFieldChain : nextFieldChains) {
+            final List<CtsFieldChain> nextComputedFieldChains = generate(nextFieldChain);
+            fieldChains.addAll(nextComputedFieldChains);
+        }
+
+        notifyLeaveNode(head);
+
+        return fieldChains;
+    }
+    */
+
+    public List<GenerationStrategy> generate() {
+        final Set<CtsFieldChain> enteredNodes = new HashSet<>();
+
+        final ArrayDeque<CtsFieldChain> queue = new ArrayDeque<>();
+
+        final CtsField rootField = CtsField.newNode(Identifier.newInstance(rootNode), 0);
+        final CtsFieldChain rootFieldChain = CtsFieldChain.newInstance(rootField);
+        queue.addFirst(rootFieldChain);
+
+        while (!queue.isEmpty()) {
+            final CtsFieldChain current = queue.removeFirst();
+            if (isBlocked(current)) {
+                continue;
+            }
+
+            if (enteredNodes.contains(current)) {
+                notifyLeaveNode(current);
+
+            } else if (current.leaf().isPresent()) {
+                notifyConsumeLeaf(current);
+
+            } else {
+                notifyEnterNode(current);
+                enteredNodes.add(current);
+                queue.addFirst(current);
+
+                final List<CtsField> fields = getFields(current.lastNode().getIdentifier());
+                final List<CtsFieldChain> nextFieldChains = current.appendAll(fields);
+                for (int i = nextFieldChains.size() - 1; i >= 0; i--) {
+                    queue.addFirst(nextFieldChains.get(i));
+                }
+            }
+        }
+
+        return observers.stream()
+                .filter(o -> (o instanceof GenerationStrategy))
+                .map(o -> (GenerationStrategy) o)
+                .collect(Collectors.toList());
     }
 }

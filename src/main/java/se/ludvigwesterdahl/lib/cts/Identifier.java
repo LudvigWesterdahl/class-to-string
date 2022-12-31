@@ -1,93 +1,77 @@
 package se.ludvigwesterdahl.lib.cts;
 
-import java.net.IDN;
 import java.util.Objects;
 import java.util.Optional;
 
 public final class Identifier {
 
-    private final Class<?> nodeType;
-    private final String nodeName;
-    private final Class<?> leafType;
-    private final String leafName;
+    private final Class<?> type;
+    private final String name;
     private final int hashCode;
 
-    private Identifier(final Class<?> nodeType, final String nodeName, final Class<?> leafType, final String leafName) {
-        this.nodeType = nodeType;
-        this.nodeName = nodeName;
-        this.leafType = leafType;
-        this.leafName = leafName;
+    private Identifier(final Class<?> type, final String name) {
+        this.type = type;
+        this.name = name;
 
-        hashCode = Objects.hash(nodeType, nodeName, leafType, leafName);
+        hashCode = Objects.hash(type, name);
     }
 
-    public static Identifier newLeaf(final Class<?> nodeType,
-                                     final String nodeName,
-                                     final Class<?> leafType,
-                                     final String leafName) {
-        Objects.requireNonNull(nodeType);
-        Objects.requireNonNull(nodeName);
-        Objects.requireNonNull(leafType);
-        Objects.requireNonNull(leafName);
+    public static Identifier newInstance(final Class<?> type, final String name) {
+        Objects.requireNonNull(type);
+        Objects.requireNonNull(name);
 
-        if (nodeName.isBlank()) {
-            throw new IllegalArgumentException("nodeName cannot be blank");
+        if (name.isBlank()) {
+            throw new IllegalArgumentException("name cannot be blank");
         }
 
-        if (leafName.isBlank()) {
-            throw new IllegalArgumentException("leafName cannot be blank");
+        return new Identifier(type, name);
+    }
+
+    public static Identifier newInstance(final Class<?> type) {
+        Objects.requireNonNull(type);
+
+        return new Identifier(type, null);
+    }
+
+    public Class<?> getType() {
+        return type;
+    }
+
+    public Optional<String> getName() {
+        return Optional.ofNullable(name);
+    }
+
+    /**
+     * Checks if this {@link Identifier} matches another by comparing the type and only comparing the name
+     * if both {@link Identifier} has a name. If one is missing a name, it will only compare
+     * the type. <br/>
+     * In other words, if both {@link Identifier} has a name, then this method is the same
+     * as calling {@link Identifier#equals(Object)}.
+     * <b>Example</b>
+     * {@code (String.class, "hello")} will match {@code (String.class, null)}, but they will not equal.
+     *
+     * @param other the identifier to check for matching.
+     * @return {@code true} if {@code this} has the same type as {@code other} and maybe the name.
+     */
+    public boolean matches(final Identifier other) {
+        if (other == null) {
+            return false;
         }
 
-        return new Identifier(nodeType, nodeName, leafType, leafName);
-    }
-
-    public static Identifier newNode(final Class<?> nodeType) {
-        Objects.requireNonNull(nodeType);
-
-        return new Identifier(nodeType, null, null, null);
-    }
-
-    public static Identifier newNode(final Class<?> nodeType, final String nodeName) {
-        Objects.requireNonNull(nodeType);
-        Objects.requireNonNull(nodeName);
-
-        if (nodeName.isBlank()) {
-            throw new IllegalArgumentException("nodeName cannot be blank");
+        if (name != null && other.name != null) {
+            return equals(other);
         }
 
-        return new Identifier(nodeType, nodeName, null, null);
+        return type.equals(other.type);
     }
 
-    public Class<?> getNodeType() {
-        return nodeType;
-    }
-
-    public Optional<String> getNodeName() {
-        return Optional.ofNullable(nodeName);
-    }
-
-    public Optional<Class<?>> getLeafType() {
-        return Optional.ofNullable(leafType);
-    }
-
-    public Optional<String> getLeafName() {
-        return Optional.ofNullable(leafName);
-    }
-
-    public boolean isNode() {
-        return getLeafType().isEmpty();
-    }
-
-    public boolean isLeaf() {
-        return !isNode();
-    }
-
-    public Identifier mapLeaf(final Class<?> newLeafType, final String newLeafName) {
-        if (isNode()) {
-            throw new IllegalStateException("cannot map a node to a leaf");
-        }
-
-        return newLeaf(nodeType, nodeName, newLeafType, newLeafName);
+    /**
+     * Returns a new {@link Identifier} instance without the name.
+     *
+     * @return a {@link Identifier} without the name
+     */
+    public Identifier stripName() {
+        return Identifier.newInstance(type);
     }
 
     @Override
@@ -107,19 +91,17 @@ public final class Identifier {
 
         final Identifier identifier = (Identifier) o;
 
-        if (identifier.hashCode != hashCode) {
+        if (hashCode != identifier.hashCode) {
             return false;
         }
 
-        return nodeType == identifier.nodeType
-                && Objects.equals(nodeName, identifier.nodeName)
-                && Objects.equals(leafType, identifier.leafType)
-                && Objects.equals(leafName, identifier.leafName);
+        return type.equals(identifier.type)
+                && Objects.equals(name, identifier.name);
     }
 
     @Override
     public String toString() {
-        return String.format("%s[nodeType=%s, nodeName=%s, leafType=%s, leafName=%s]",
-                getClass().getCanonicalName(), nodeType, nodeName, leafType, leafName);
+        return String.format("%s[type=%s, name=%s]",
+                getClass().getCanonicalName(), type, name);
     }
 }

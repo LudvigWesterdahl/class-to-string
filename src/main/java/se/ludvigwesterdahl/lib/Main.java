@@ -1,8 +1,8 @@
 package se.ludvigwesterdahl.lib;
 
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +11,7 @@ public class Main<T> {
     private Map<String, List<String>> field;
     private T field2;
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
         System.out.println(getString());
         final Field[] type = Main.class.getDeclaredFields();
         final Main<String> s = new Main<>();
