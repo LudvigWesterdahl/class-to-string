@@ -8,6 +8,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 /**
+ * TODO: explain this deeper
  * Renaming happens first.
  * Then embeddings. This means that an embedding can override a node.
  * Then checking if a field is a node.
@@ -383,38 +384,7 @@ public final class ClassToStringGenerator {
         notifyAllObservers(Observer::leaveNode, nodeFieldChain);
     }
 
-
-    /*
-    private List<CtsFieldChain> generate(final CtsFieldChain currentFieldChain) {
-        final List<CtsFieldChain> fieldChains = new ArrayList<>();
-        final CtsField head = currentFieldChain.head();
-
-        if (isBlocked(head)) {
-            return fieldChains;
-        }
-
-        if (!head.isNode()) {
-            fieldChains.add(currentFieldChain);
-            notifyConsumeLeaf(head);
-            return fieldChains;
-        }
-
-        notifyEnterNode(head);
-
-        final List<CtsField> fields = getFields(head.getIdentifier());
-        final List<CtsFieldChain> nextFieldChains = currentFieldChain.appendAll(fields);
-        for (final CtsFieldChain nextFieldChain : nextFieldChains) {
-            final List<CtsFieldChain> nextComputedFieldChains = generate(nextFieldChain);
-            fieldChains.addAll(nextComputedFieldChains);
-        }
-
-        notifyLeaveNode(head);
-
-        return fieldChains;
-    }
-    */
-
-    public List<GenerationStrategy> generate() {
+    public List<GenerationStrategy> iterate() {
         final Set<CtsFieldChain> enteredNodes = new HashSet<>();
 
         final ArrayDeque<CtsFieldChain> queue = new ArrayDeque<>();

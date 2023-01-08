@@ -5,6 +5,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * TODO: check over this class and simplify it.
+ * Do we need all these helper methods?
+ * Maybe add a size? Then add that documentation to Blocker interface as well.
+ */
 public final class CtsFieldChain {
 
     private final List<CtsField> fields;
@@ -46,10 +51,6 @@ public final class CtsFieldChain {
 
     public List<CtsField> allFields() {
         return new ArrayList<>(fields);
-    }
-
-    public CtsFieldChain removeHead() {
-        return new CtsFieldChain(new ArrayList<>(fields.subList(0, Math.max(1, fields.size() - 1))));
     }
 
     private CtsFieldChain append(final CtsField head) {
