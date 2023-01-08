@@ -2,9 +2,11 @@ package se.ludvigwesterdahl.lib.fixture;
 
 import se.ludvigwesterdahl.lib.cts.ClassToStringGenerator;
 
-public interface CtsFixture {
+import java.util.List;
+
+public interface CtsNotificationFixture {
 
     ClassToStringGenerator generator();
 
-    String expected();
+    List<CtsNotification> expected();
 }

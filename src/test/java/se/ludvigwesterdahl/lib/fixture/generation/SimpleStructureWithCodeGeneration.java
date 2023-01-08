@@ -1,14 +1,16 @@
-package se.ludvigwesterdahl.lib.fixture;
+package se.ludvigwesterdahl.lib.fixture.generation;
 
 import se.ludvigwesterdahl.lib.cts.ClassToStringGenerator;
 import se.ludvigwesterdahl.lib.cts.Identifier;
 import se.ludvigwesterdahl.lib.cts.strategy.FlatGenerationStrategy;
 import se.ludvigwesterdahl.lib.cts.strategy.GenerationStrategy;
+import se.ludvigwesterdahl.lib.fixture.CtsGenerationFixture;
+import se.ludvigwesterdahl.lib.fixture.CtsGenerationFixtureGroup;
 
 import java.util.List;
 import java.util.function.Supplier;
 
-public final class SimpleStructureCodeCtsFixtures implements CtsFixtureGroup {
+public final class SimpleStructureWithCodeGeneration implements CtsGenerationFixtureGroup {
 
     private static final Supplier<GenerationStrategy> GENERATION_STRATEGY_SUPPLIER = () ->
             new FlatGenerationStrategy.Builder()
@@ -29,7 +31,7 @@ public final class SimpleStructureCodeCtsFixtures implements CtsFixtureGroup {
         }
     }
 
-    private static final class SimpleClassStructure implements CtsFixture {
+    private static final class SimpleClassStructure implements CtsGenerationFixture {
 
         @Override
         public ClassToStringGenerator generator() {
@@ -44,7 +46,7 @@ public final class SimpleStructureCodeCtsFixtures implements CtsFixtureGroup {
         }
     }
 
-    private static final class SimpleClassStructureWithRenaming implements CtsFixture {
+    private static final class SimpleClassStructureWithRenaming implements CtsGenerationFixture {
 
         @Override
         public ClassToStringGenerator generator() {
@@ -61,7 +63,7 @@ public final class SimpleStructureCodeCtsFixtures implements CtsFixtureGroup {
         }
     }
 
-    private static final class SimpleClassStructureWithEmbedding implements CtsFixture {
+    private static final class SimpleClassStructureWithEmbedding implements CtsGenerationFixture {
 
         @Override
         public ClassToStringGenerator generator() {
@@ -78,7 +80,7 @@ public final class SimpleStructureCodeCtsFixtures implements CtsFixtureGroup {
     }
 
     @Override
-    public List<CtsFixture> ctsFixtures() {
+    public List<CtsGenerationFixture> generationFixtures() {
         return List.of(
                 new SimpleClassStructure(),
                 new SimpleClassStructureWithRenaming(),

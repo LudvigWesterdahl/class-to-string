@@ -100,6 +100,6 @@ public final class CtsFieldChain {
     @Override
     public String toString() {
         return String.format("%s[fields=%s]",
-                getClass().getCanonicalName(), fields);
+                getClass().getSimpleName(), fields);
     }
 }

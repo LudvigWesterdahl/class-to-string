@@ -69,6 +69,6 @@ public final class CtsField {
     @Override
     public String toString() {
         return String.format("%s[identifier=%s, modifiers=%d, node=%b]",
-                getClass().getCanonicalName(), identifier, modifiers, node);
+                getClass().getSimpleName(), identifier, modifiers, node);
     }
 }

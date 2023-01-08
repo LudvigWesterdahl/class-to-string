@@ -102,6 +102,6 @@ public final class Identifier {
     @Override
     public String toString() {
         return String.format("%s[type=%s, name=%s]",
-                getClass().getCanonicalName(), type, name);
+                getClass().getSimpleName(), type, name);
     }
 }
