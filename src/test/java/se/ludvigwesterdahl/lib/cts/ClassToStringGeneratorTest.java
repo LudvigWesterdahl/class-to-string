@@ -3,11 +3,10 @@ package se.ludvigwesterdahl.lib.cts;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import se.ludvigwesterdahl.lib.fixture.CtsGenerationFixtureGroup;
 import se.ludvigwesterdahl.lib.fixture.CtsNotification;
-import se.ludvigwesterdahl.lib.fixture.CtsNotificationFixtureGroup;
-import se.ludvigwesterdahl.lib.fixture.generation.SimpleStructureWithCodeGeneration;
-import se.ludvigwesterdahl.lib.fixture.notification.SimpleStructureWithCodeNotification;
+import se.ludvigwesterdahl.lib.fixture.CtsTestCase;
+import se.ludvigwesterdahl.lib.fixture.CtsTestCaseGroup;
+import se.ludvigwesterdahl.lib.fixture.SimpleStructureWithCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,28 +16,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 final class ClassToStringGeneratorTest {
 
-    private static final List<CtsGenerationFixtureGroup> GENERATION_FIXTURES = List.of(
-            new SimpleStructureWithCodeGeneration()
+    private static final List<CtsTestCaseGroup> TEST_CASE_GROUPS = List.of(
+            new SimpleStructureWithCode()
     );
 
-    private static final List<CtsNotificationFixtureGroup> NOTIFICATION_FIXTURES = List.of(
-            new SimpleStructureWithCodeNotification()
-    );
-
-
-    private static Stream<Arguments> fromGenerationFixtureGroup(final CtsGenerationFixtureGroup group) {
-        return group.generationFixtures()
+    private static Stream<Arguments> toExpectedGenerateArguments(final CtsTestCaseGroup group) {
+        return group.testCases()
                 .stream()
+                .filter(CtsTestCase::hasExpectedGenerate)
                 .map(c -> Arguments.of(
                         group.getClass().getSimpleName(),
                         c.getClass().getSimpleName(),
                         c.generator(),
-                        c.expected()));
+                        c.expectedGenerate()));
     }
 
     private static Stream<Arguments> Should_ProduceString_When_Generate_Provider() {
-        return GENERATION_FIXTURES.stream()
-                .flatMap(ClassToStringGeneratorTest::fromGenerationFixtureGroup);
+        return TEST_CASE_GROUPS.stream()
+                .flatMap(ClassToStringGeneratorTest::toExpectedGenerateArguments);
     }
 
     @ParameterizedTest(name = "{index}: {0} - {1}")
@@ -54,21 +49,24 @@ final class ClassToStringGeneratorTest {
         assertThat(actual).isEqualTo(expected);
     }
 
-    private static Stream<Arguments> fromNotificationFixtureGroup(final CtsNotificationFixtureGroup group) {
-        return group.notificationFixtures()
+    private static Stream<Arguments> toExpectedNotificationsArguments(final CtsTestCaseGroup group) {
+        return group.testCases()
                 .stream()
+                .filter(CtsTestCase::hasExpectedNotifications)
                 .map(c -> Arguments.of(
                         group.getClass().getSimpleName(),
                         c.getClass().getSimpleName(),
                         c.generator(),
-                        c.expected()));
+                        c.expectedNotifications()));
     }
 
     private static Stream<Arguments> Should_NotifyObserver_When_Generate_Provider() {
-        return NOTIFICATION_FIXTURES.stream()
-                .flatMap(ClassToStringGeneratorTest::fromNotificationFixtureGroup);
+        return TEST_CASE_GROUPS.stream()
+                .flatMap(ClassToStringGeneratorTest::toExpectedNotificationsArguments);
     }
 
+    // TODO: Give the test case here instead of the generator, that way
+    //     we can debug that specific test case easier by setting a breakpoint in the method.
     @ParameterizedTest(name = "{index}: {0} - {1}")
     @MethodSource("Should_NotifyObserver_When_Generate_Provider")
     void Should_NotifyObserver_When_Generate(@SuppressWarnings("unused") final String groupName,
