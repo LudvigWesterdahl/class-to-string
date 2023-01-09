@@ -27,8 +27,7 @@ final class ClassToStringGeneratorTest {
                 .map(c -> Arguments.of(
                         group.getClass().getSimpleName(),
                         c.getClass().getSimpleName(),
-                        c.generator(),
-                        c.expectedGenerate()));
+                        c));
     }
 
     private static Stream<Arguments> Should_ProduceString_When_Generate_Provider() {
@@ -39,9 +38,11 @@ final class ClassToStringGeneratorTest {
     @ParameterizedTest(name = "{index}: {0} - {1}")
     @MethodSource("Should_ProduceString_When_Generate_Provider")
     void Should_ProduceString_When_Generate(@SuppressWarnings("unused") final String groupName,
-                                            @SuppressWarnings("unused") final String fixtureName,
-                                            final ClassToStringGenerator generator,
-                                            final String expected) {
+                                            @SuppressWarnings("unused") final String testName,
+                                            final CtsTestCase testCase) {
+        final String expected = testCase.expectedGenerate();
+        final ClassToStringGenerator generator = testCase.generator();
+
         final String actual = generator.iterate()
                 .get(0)
                 .generate();
@@ -56,8 +57,7 @@ final class ClassToStringGeneratorTest {
                 .map(c -> Arguments.of(
                         group.getClass().getSimpleName(),
                         c.getClass().getSimpleName(),
-                        c.generator(),
-                        c.expectedNotifications()));
+                        c));
     }
 
     private static Stream<Arguments> Should_NotifyObserver_When_Generate_Provider() {
@@ -65,14 +65,12 @@ final class ClassToStringGeneratorTest {
                 .flatMap(ClassToStringGeneratorTest::toExpectedNotificationsArguments);
     }
 
-    // TODO: Give the test case here instead of the generator, that way
-    //     we can debug that specific test case easier by setting a breakpoint in the method.
     @ParameterizedTest(name = "{index}: {0} - {1}")
     @MethodSource("Should_NotifyObserver_When_Generate_Provider")
     void Should_NotifyObserver_When_Generate(@SuppressWarnings("unused") final String groupName,
-                                             @SuppressWarnings("unused") final String fixtureName,
-                                             final ClassToStringGenerator generator,
-                                             final List<CtsNotification> expected) {
+                                             @SuppressWarnings("unused") final String testName,
+                                             final CtsTestCase testCase) {
+        final List<CtsNotification> expected = testCase.expectedNotifications();
         final List<CtsNotification> actual = new ArrayList<>();
         final Observer actualObserver = new Observer() {
             @Override
@@ -90,6 +88,7 @@ final class ClassToStringGeneratorTest {
                 actual.add(CtsNotification.notification(CtsNotification.Type.LEAVE_NODE, nodeFieldChain));
             }
         };
+        final ClassToStringGenerator generator = testCase.generator();
         generator.addObserver(actualObserver);
 
         generator.iterate();
