@@ -386,11 +386,9 @@ public final class ClassToStringGenerator {
 
     public List<GenerationStrategy> iterate() {
         final Set<CtsFieldChain> enteredNodes = new HashSet<>();
-
         final ArrayDeque<CtsFieldChain> queue = new ArrayDeque<>();
 
-        final CtsField rootField = CtsField.newNode(Identifier.newInstance(rootNode), 0);
-        final CtsFieldChain rootFieldChain = CtsFieldChain.newInstance(rootField);
+        final CtsFieldChain rootFieldChain = CtsFieldChain.newRootInstance(rootNode);
         queue.addFirst(rootFieldChain);
 
         while (!queue.isEmpty()) {
@@ -402,7 +400,7 @@ public final class ClassToStringGenerator {
             if (enteredNodes.contains(current)) {
                 notifyLeaveNode(current);
 
-            } else if (current.leaf().isPresent()) {
+            } else if (current.isLeaf()) {
                 notifyConsumeLeaf(current);
 
             } else {
@@ -410,7 +408,7 @@ public final class ClassToStringGenerator {
                 enteredNodes.add(current);
                 queue.addFirst(current);
 
-                final List<CtsField> fields = getFields(current.lastNode().getIdentifier());
+                final List<CtsField> fields = getFields(current.head().getIdentifier());
                 final List<CtsFieldChain> nextFieldChains = current.appendAll(fields);
                 for (int i = nextFieldChains.size() - 1; i >= 0; i--) {
                     queue.addFirst(nextFieldChains.get(i));

@@ -30,7 +30,7 @@ public final class LeafBlocker implements Blocker {
 
     @Override
     public boolean block(final CtsFieldChain fieldChain) {
-        return fieldChain.leaf().isPresent();
+        return fieldChain.isLeaf();
     }
 
     @Override

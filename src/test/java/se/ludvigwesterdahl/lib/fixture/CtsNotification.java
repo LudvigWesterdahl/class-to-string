@@ -16,10 +16,14 @@ public final class CtsNotification {
     private final CtsFieldChain fieldChain;
     private final int hashCode;
 
-    public CtsNotification(final Type type, final CtsFieldChain fieldChain) {
+    private CtsNotification(final Type type, final CtsFieldChain fieldChain) {
         this.type = type;
         this.fieldChain = fieldChain;
         hashCode = Objects.hash(type, fieldChain);
+    }
+
+    public static CtsNotification notification(final Type type, final CtsFieldChain fieldChain) {
+        return new CtsNotification(type, fieldChain);
     }
 
     @Override

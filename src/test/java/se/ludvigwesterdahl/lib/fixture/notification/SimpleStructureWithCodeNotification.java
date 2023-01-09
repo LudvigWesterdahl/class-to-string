@@ -12,6 +12,11 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static se.ludvigwesterdahl.lib.fixture.CtsFieldChainFixture.appendPrivateLeaf;
+import static se.ludvigwesterdahl.lib.fixture.CtsFieldChainFixture.appendPrivateNode;
+import static se.ludvigwesterdahl.lib.fixture.CtsNotification.*;
+import static se.ludvigwesterdahl.lib.fixture.CtsNotification.Type.*;
+
 public final class SimpleStructureWithCodeNotification implements CtsNotificationFixtureGroup {
 
     private static final Supplier<GenerationStrategy> GENERATION_STRATEGY_SUPPLIER = () ->
@@ -44,35 +49,25 @@ public final class SimpleStructureWithCodeNotification implements CtsNotificatio
 
         @Override
         public List<CtsNotification> expected() {
-            final CtsFieldChain node1 = CtsFieldChain.newInstance(
-                    CtsField.newNode(Identifier.newInstance(Simple.class), 0)
-            );
-            final CtsFieldChain leaf1 = node1.appendAll(List.of(
-                    CtsField.newLeaf(Identifier.newInstance(String.class, "field1"), Modifier.PRIVATE)
-            )).get(0);
-            final CtsFieldChain node2 = node1.appendAll(List.of(
-                    CtsField.newNode(Identifier.newInstance(Simple.Inner.class, "inner"), Modifier.PRIVATE)
-            )).get(0);
-            final CtsFieldChain leaf2 = node2.appendAll(List.of(
-                    CtsField.newLeaf(Identifier.newInstance(String.class, "field1Inner"), Modifier.PRIVATE)
-            )).get(0);
-            final CtsFieldChain leaf3 = node2.appendAll(List.of(
-                    CtsField.newLeaf(Identifier.newInstance(String.class, "field2Inner"), Modifier.PRIVATE)
-            )).get(0);
+            final CtsFieldChain node1 = CtsFieldChain.newRootInstance(Simple.class);
+            final CtsFieldChain leaf1 = appendPrivateLeaf(node1, String.class, "field1");
+            final CtsFieldChain node2 = appendPrivateNode(node1, Simple.Inner.class, "inner");
+            final CtsFieldChain leaf2 = appendPrivateLeaf(node2, String.class, "field1Inner");
+            final CtsFieldChain leaf3 = appendPrivateLeaf(node2, String.class, "field2Inner");
 
             return List.of(
-                    new CtsNotification(CtsNotification.Type.ENTER_NODE, node1),
-                    new CtsNotification(CtsNotification.Type.CONSUME_LEAF, leaf1),
-                    new CtsNotification(CtsNotification.Type.ENTER_NODE, node2),
-                    new CtsNotification(CtsNotification.Type.CONSUME_LEAF, leaf2),
-                    new CtsNotification(CtsNotification.Type.CONSUME_LEAF, leaf3),
-                    new CtsNotification(CtsNotification.Type.LEAVE_NODE, node2),
-                    new CtsNotification(CtsNotification.Type.LEAVE_NODE, node1)
+                    notification(ENTER_NODE, node1),
+                    notification(CONSUME_LEAF, leaf1),
+                    notification(ENTER_NODE, node2),
+                    notification(CONSUME_LEAF, leaf2),
+                    notification(CONSUME_LEAF, leaf3),
+                    notification(LEAVE_NODE, node2),
+                    notification(LEAVE_NODE, node1)
             );
         }
     }
 
-    /*
+
     private static final class SimpleClassStructureWithRenaming implements CtsNotificationFixture {
 
         @Override
@@ -86,12 +81,24 @@ public final class SimpleStructureWithCodeNotification implements CtsNotificatio
 
         @Override
         public List<CtsNotification> expected() {
-            return "field1,newInner/field1Inner,newInner/field2Inner";
+            final CtsFieldChain node1 = CtsFieldChain.newRootInstance(Simple.class);
+            final CtsFieldChain leaf1 = appendPrivateLeaf(node1, String.class, "field1");
+            final CtsFieldChain node2 = appendPrivateNode(node1, Simple.Inner.class, "newInner");
+            final CtsFieldChain leaf2 = appendPrivateLeaf(node2, String.class, "field1Inner");
+            final CtsFieldChain leaf3 = appendPrivateLeaf(node2, String.class, "field2Inner");
+
+            return List.of(
+                    notification(ENTER_NODE, node1),
+                    notification(CONSUME_LEAF, leaf1),
+                    notification(ENTER_NODE, node2),
+                    notification(CONSUME_LEAF, leaf2),
+                    notification(CONSUME_LEAF, leaf3),
+                    notification(LEAVE_NODE, node2),
+                    notification(LEAVE_NODE, node1)
+            );
         }
     }
-    */
 
-    /*
     private static final class SimpleClassStructureWithEmbedding implements CtsNotificationFixture {
 
         @Override
@@ -104,17 +111,27 @@ public final class SimpleStructureWithCodeNotification implements CtsNotificatio
 
         @Override
         public List<CtsNotification> expected() {
-            return "field1,field1Inner,field2Inner";
+            final CtsFieldChain node1 = CtsFieldChain.newRootInstance(Simple.class);
+            final CtsFieldChain leaf1 = appendPrivateLeaf(node1, String.class, "field1");
+            final CtsFieldChain leaf2 = appendPrivateLeaf(node1, String.class, "field1Inner");
+            final CtsFieldChain leaf3 = appendPrivateLeaf(node1, String.class, "field2Inner");
+
+            return List.of(
+                    notification(ENTER_NODE, node1),
+                    notification(CONSUME_LEAF, leaf1),
+                    notification(CONSUME_LEAF, leaf2),
+                    notification(CONSUME_LEAF, leaf3),
+                    notification(LEAVE_NODE, node1)
+            );
         }
     }
-    */
 
     @Override
     public List<CtsNotificationFixture> notificationFixtures() {
         return List.of(
-                new SimpleClassStructure()//,
-                //new SimpleClassStructureWithRenaming(),
-                //new SimpleClassStructureWithEmbedding()
+                new SimpleClassStructure(),
+                new SimpleClassStructureWithRenaming(),
+                new SimpleClassStructureWithEmbedding()
         );
     }
 }

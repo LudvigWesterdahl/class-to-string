@@ -20,33 +20,23 @@ public final class CtsFieldChain {
         hashCode = fields.hashCode();
     }
 
-    public static CtsFieldChain newInstance(final CtsField tail) {
-        Objects.requireNonNull(tail);
-        return new CtsFieldChain(List.of(tail));
-    }
-
-    public CtsField rootNode() {
-        return fields.get(0);
+    public static CtsFieldChain newRootInstance(final Class<?> rootType) {
+        final CtsField rootField = CtsField.newNode(Identifier.newInstance(rootType), 0);
+        final List<CtsField> fields = new ArrayList<>();
+        fields.add(rootField);
+        return new CtsFieldChain(fields);
     }
 
     public CtsField head() {
         return fields.get(fields.size() - 1);
     }
 
-    public CtsField lastNode() {
-        if (head().isNode()) {
-            return head();
-        }
-
-        return fields.get(Math.max(0, fields.size() - 2));
+    public boolean isLeaf() {
+        return !head().isNode();
     }
 
-    public Optional<CtsField> leaf() {
-        if (head().isNode()) {
-            return Optional.empty();
-        }
-
-        return Optional.of(head());
+    public boolean isRoot() {
+        return fields.size() == 1;
     }
 
     public List<CtsField> allFields() {
@@ -54,7 +44,7 @@ public final class CtsFieldChain {
     }
 
     private CtsFieldChain append(final CtsField head) {
-        if (leaf().isPresent()) {
+        if (isLeaf()) {
             throw new IllegalStateException("cannot append to this chain");
         }
 

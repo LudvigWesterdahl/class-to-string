@@ -10,6 +10,8 @@ public final class FlatGenerationStrategy implements GenerationStrategy {
 
     private final String pathSeparator;
     private final String levelMarker;
+    private final boolean nodes;
+    private final boolean leaf;
     private StringBuilder builder = new StringBuilder();
     private String result = "";
 
@@ -17,6 +19,8 @@ public final class FlatGenerationStrategy implements GenerationStrategy {
 
         private String pathSeparator = ",";
         private String levelMarker = "/";
+        private boolean nodes = false;
+        private boolean leaf = true;
 
         public Builder withPathSeparator(final String pathSeparator) {
             this.pathSeparator = Objects.requireNonNull(pathSeparator);
@@ -28,6 +32,16 @@ public final class FlatGenerationStrategy implements GenerationStrategy {
             return this;
         }
 
+        public Builder withNodes(final boolean nodes) {
+            this.nodes = nodes;
+            return this;
+        }
+
+        public Builder withLeaf(final boolean leaf) {
+            this.leaf = leaf;
+            return this;
+        }
+
         public GenerationStrategy build() {
             return new FlatGenerationStrategy(this);
         }
@@ -36,6 +50,8 @@ public final class FlatGenerationStrategy implements GenerationStrategy {
     private FlatGenerationStrategy(final Builder builder) {
         pathSeparator = builder.pathSeparator;
         levelMarker = builder.levelMarker;
+        nodes = builder.nodes;
+        leaf = builder.leaf;
     }
 
     public String getPathSeparator() {
@@ -46,16 +62,15 @@ public final class FlatGenerationStrategy implements GenerationStrategy {
         return levelMarker;
     }
 
-    @Override
-    public void enterNode(final CtsFieldChain nodeFieldChain) {
-        // Reset when root node is encountered.
-        if (result != null && nodeFieldChain.head().getIdentifier().getName().isEmpty()) {
-            builder = new StringBuilder();
-            result = null;
-        }
+    public boolean isNodes() {
+        return nodes;
     }
 
-    private String createLeafString(final CtsFieldChain leafFieldChain) {
+    public boolean isLeaf() {
+        return leaf;
+    }
+
+    private String createString(final CtsFieldChain leafFieldChain) {
         return leafFieldChain.allFields()
                 .stream()
                 .skip(1)
@@ -64,10 +79,30 @@ public final class FlatGenerationStrategy implements GenerationStrategy {
     }
 
     @Override
+    public void enterNode(final CtsFieldChain nodeFieldChain) {
+        // Reset when root node is encountered.
+        if (result != null && nodeFieldChain.head().getIdentifier().getName().isEmpty()) {
+            builder = new StringBuilder();
+            result = null;
+            return;
+        }
+
+        if (isNodes()) {
+            final String nodeString = createString(nodeFieldChain);
+            builder.append(nodeString)
+                    .append(getPathSeparator());
+        }
+    }
+
+
+
+    @Override
     public void consumeLeaf(final CtsFieldChain leafFieldChain) {
-        final String leafString = createLeafString(leafFieldChain);
-        builder.append(leafString)
-                .append(getPathSeparator());
+        if (isLeaf()) {
+            final String leafString = createString(leafFieldChain);
+            builder.append(leafString)
+                    .append(getPathSeparator());
+        }
     }
 
     @Override

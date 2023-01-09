@@ -54,7 +54,7 @@ public final class MaxDepthBlocker implements Blocker {
 
     @Override
     public boolean block(final CtsFieldChain fieldChain) {
-        if (fieldChain.leaf().isPresent()) {
+        if (fieldChain.isLeaf()) {
             return false;
         }
 
@@ -68,14 +68,12 @@ public final class MaxDepthBlocker implements Blocker {
 
     @Override
     public void enterNode(final CtsFieldChain nodeFieldChain) {
-        final CtsField node = nodeFieldChain.lastNode();
-
-        if (node.getIdentifier().getName().isEmpty()) {
+        if (nodeFieldChain.isRoot()) {
             reset();
             return;
         }
 
-        if (blockingPoint.matches(node.getIdentifier())) {
+        if (blockingPoint.matches(nodeFieldChain.head().getIdentifier())) {
             counting = true;
         }
 
@@ -91,9 +89,7 @@ public final class MaxDepthBlocker implements Blocker {
 
     @Override
     public void leaveNode(final CtsFieldChain nodeFieldChain) {
-        final CtsField node = nodeFieldChain.lastNode();
-
-        if (blockingPoint.matches(node.getIdentifier())) {
+        if (blockingPoint.matches(nodeFieldChain.head().getIdentifier())) {
             reset();
         }
     }

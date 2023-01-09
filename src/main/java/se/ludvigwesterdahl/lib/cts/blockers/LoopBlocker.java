@@ -64,14 +64,12 @@ public final class LoopBlocker implements Blocker {
 
     @Override
     public void enterNode(CtsFieldChain nodeFieldChain) {
-        final CtsField field = nodeFieldChain.head();
-
-        if (field.getIdentifier().getName().isEmpty()) {
+        if (nodeFieldChain.isRoot()) {
             reset();
             return;
         }
 
-        if (blockingPoint.matches(field.getIdentifier())) {
+        if (blockingPoint.matches(nodeFieldChain.head().getIdentifier())) {
             counting = true;
         }
 
@@ -87,9 +85,7 @@ public final class LoopBlocker implements Blocker {
 
     @Override
     public void leaveNode(CtsFieldChain nodeFieldChain) {
-        final CtsField field = nodeFieldChain.head();
-
-        if (blockingPoint.matches(field.getIdentifier())) {
+        if (blockingPoint.matches(nodeFieldChain.head().getIdentifier())) {
             reset();
         }
     }

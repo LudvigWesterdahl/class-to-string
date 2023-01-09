@@ -79,17 +79,17 @@ final class ClassToStringGeneratorTest {
         final Observer actualObserver = new Observer() {
             @Override
             public void enterNode(final CtsFieldChain nodeFieldChain) {
-                actual.add(new CtsNotification(CtsNotification.Type.ENTER_NODE, nodeFieldChain));
+                actual.add(CtsNotification.notification(CtsNotification.Type.ENTER_NODE, nodeFieldChain));
             }
 
             @Override
             public void consumeLeaf(final CtsFieldChain leafFieldChain) {
-                actual.add(new CtsNotification(CtsNotification.Type.CONSUME_LEAF, leafFieldChain));
+                actual.add(CtsNotification.notification(CtsNotification.Type.CONSUME_LEAF, leafFieldChain));
             }
 
             @Override
             public void leaveNode(final CtsFieldChain nodeFieldChain) {
-                actual.add(new CtsNotification(CtsNotification.Type.LEAVE_NODE, nodeFieldChain));
+                actual.add(CtsNotification.notification(CtsNotification.Type.LEAVE_NODE, nodeFieldChain));
             }
         };
         generator.addObserver(actualObserver);
