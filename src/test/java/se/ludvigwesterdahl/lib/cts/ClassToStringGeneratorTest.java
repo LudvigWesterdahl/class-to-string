@@ -1,38 +1,40 @@
 package se.ludvigwesterdahl.lib.cts;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import se.ludvigwesterdahl.lib.fixture.CtsNotification;
-import se.ludvigwesterdahl.lib.fixture.CtsTestCase;
-import se.ludvigwesterdahl.lib.fixture.CtsTestCaseGroup;
-import se.ludvigwesterdahl.lib.fixture.SimpleStructureWithCode;
+import se.ludvigwesterdahl.lib.fixture.ctstestcases.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 final class ClassToStringGeneratorTest {
 
     private static final List<CtsTestCaseGroup> TEST_CASE_GROUPS = List.of(
-            new SimpleStructureWithCode()
+            new SimpleStructureWithCode(),
+            new EmbedBeforeBlocker(),
+            new EmbedNodeWithExternalEmbeddings()
     );
 
-    private static Stream<Arguments> toExpectedGenerateArguments(final CtsTestCaseGroup group) {
-        return group.testCases()
-                .stream()
-                .filter(CtsTestCase::hasExpectedGenerate)
-                .map(c -> Arguments.of(
-                        group.getClass().getSimpleName(),
-                        c.getClass().getSimpleName(),
-                        c));
+    private static Stream<Arguments> toArguments(final Predicate<CtsTestCase> predicate) {
+        return TEST_CASE_GROUPS.stream()
+                .flatMap(group -> group.testCases()
+                        .stream()
+                        .filter(predicate)
+                        .map(testCase -> Arguments.of(
+                                group.getClass().getSimpleName(),
+                                testCase.getClass().getSimpleName(),
+                                testCase)));
     }
 
     private static Stream<Arguments> Should_ProduceString_When_Generate_Provider() {
-        return TEST_CASE_GROUPS.stream()
-                .flatMap(ClassToStringGeneratorTest::toExpectedGenerateArguments);
+        return toArguments(CtsTestCase::hasExpectedGenerate);
     }
 
     @ParameterizedTest(name = "{index}: {0} - {1}")
@@ -50,19 +52,8 @@ final class ClassToStringGeneratorTest {
         assertThat(actual).isEqualTo(expected);
     }
 
-    private static Stream<Arguments> toExpectedNotificationsArguments(final CtsTestCaseGroup group) {
-        return group.testCases()
-                .stream()
-                .filter(CtsTestCase::hasExpectedNotifications)
-                .map(c -> Arguments.of(
-                        group.getClass().getSimpleName(),
-                        c.getClass().getSimpleName(),
-                        c));
-    }
-
     private static Stream<Arguments> Should_NotifyObserver_When_Generate_Provider() {
-        return TEST_CASE_GROUPS.stream()
-                .flatMap(ClassToStringGeneratorTest::toExpectedNotificationsArguments);
+        return toArguments(CtsTestCase::hasExpectedNotifications);
     }
 
     @ParameterizedTest(name = "{index}: {0} - {1}")
@@ -94,5 +85,22 @@ final class ClassToStringGeneratorTest {
         generator.iterate();
 
         assertThat(actual).isEqualTo(expected);
+    }
+
+    @SuppressWarnings("unused")
+    private static final class Circular {
+
+        private String field;
+        private Circular circular;
+    }
+
+    @Test
+    void Should_ThrowException_When_CircularEmbeddingDetected() {
+        final ClassToStringGenerator generator = ClassToStringGenerator.from(Circular.class)
+                        .embed(Identifier.newInstance(Circular.class));
+
+        assertThatCode(generator::iterate)
+                .isExactlyInstanceOf(IllegalStateException.class)
+                .hasMessage("illegal loop detected");
     }
 }

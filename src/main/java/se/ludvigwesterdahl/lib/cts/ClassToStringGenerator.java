@@ -20,7 +20,7 @@ public final class ClassToStringGenerator {
     private final Class<?> rootNode;
     private final Set<Identifier> nodes;
     private final Map<Identifier, Identifier> renaming;
-    private final Map<Identifier, Set<Identifier>> remoteEmbeddings;
+    private final Map<Identifier, Set<Identifier>> externalEmbeddings;
     private final Set<Identifier> embeddings;
     private final Set<Blocker> blockers;
     private final Set<Observer> observers;
@@ -28,14 +28,14 @@ public final class ClassToStringGenerator {
     private ClassToStringGenerator(final Class<?> rootNode,
                                    final Set<Identifier> nodes,
                                    final Map<Identifier, Identifier> renaming,
-                                   final Map<Identifier, Set<Identifier>> remoteEmbeddings,
+                                   final Map<Identifier, Set<Identifier>> externalEmbeddings,
                                    final Set<Identifier> embeddings,
                                    final Set<Blocker> blockers,
                                    final Set<Observer> observers) {
         this.rootNode = rootNode;
         this.nodes = nodes;
         this.renaming = renaming;
-        this.remoteEmbeddings = remoteEmbeddings;
+        this.externalEmbeddings = externalEmbeddings;
         this.embeddings = embeddings;
         this.blockers = blockers;
         this.observers = observers;
@@ -174,7 +174,7 @@ public final class ClassToStringGenerator {
         Objects.requireNonNull(type);
         Objects.requireNonNull(toNode);
 
-        remoteEmbeddings.computeIfAbsent(toNode, ignored -> new HashSet<>())
+        externalEmbeddings.computeIfAbsent(toNode, ignored -> new HashSet<>())
                 .add(Identifier.newInstance(type));
 
         return this;
@@ -182,7 +182,6 @@ public final class ClassToStringGenerator {
 
     /**
      * Embeds a node into the parent node when encountered. It will inject all leaf/nodes into that node. <br/>
-     * TODO: might not be true: Note that embeddings are only performed if no {@link Blocker} blocks the node from being entered. <br/>
      * If you want to embed a node into a node that does not contain this node,
      * then use {@link ClassToStringGenerator#embed(Class, Identifier)} instead. <br/>
      *
@@ -300,13 +299,13 @@ public final class ClassToStringGenerator {
         return nodes.contains(identifier.stripName());
     }
 
-    private Set<Identifier> getRemoteEmbeddings(final Identifier node) {
-        final Set<Identifier> specificEmbeddings = remoteEmbeddings.get(node);
+    private Set<Identifier> getExternalEmbeddings(final Identifier node) {
+        final Set<Identifier> specificEmbeddings = externalEmbeddings.get(node);
         if (specificEmbeddings != null) {
             return specificEmbeddings;
         }
 
-        final Set<Identifier> generalEmbeddings = remoteEmbeddings.get(node.stripName());
+        final Set<Identifier> generalEmbeddings = externalEmbeddings.get(node.stripName());
         if (generalEmbeddings != null) {
             return generalEmbeddings;
         }
@@ -329,7 +328,7 @@ public final class ClassToStringGenerator {
 
             final Identifier identifier = getIdentifier(type, name);
 
-            if (isEmbedded(identifier)) {
+            if (isNode(identifier) && isEmbedded(identifier)) {
                 final List<CtsField> embeddedFields = getFields(originalNode, identifier);
                 fields.addAll(embeddedFields);
             } else if (isNode(identifier)) {
@@ -342,8 +341,8 @@ public final class ClassToStringGenerator {
         }
 
         // Checks for any remote embeddings into this node.
-        final Set<Identifier> currentNodeRemoteEmbeddings = getRemoteEmbeddings(currentNode);
-        for (final Identifier identifier : currentNodeRemoteEmbeddings) {
+        final Set<Identifier> currentNodeExternalEmbeddings = getExternalEmbeddings(currentNode);
+        for (final Identifier identifier : currentNodeExternalEmbeddings) {
             final List<CtsField> embeddedFields = getFields(originalNode, identifier);
             fields.addAll(embeddedFields);
         }
@@ -400,7 +399,7 @@ public final class ClassToStringGenerator {
             if (enteredNodes.contains(current)) {
                 notifyLeaveNode(current);
 
-            } else if (current.isLeaf()) {
+            } else if (!current.head().isNode()) {
                 notifyConsumeLeaf(current);
 
             } else {
@@ -409,7 +408,7 @@ public final class ClassToStringGenerator {
                 queue.addFirst(current);
 
                 final List<CtsField> fields = getFields(current.head().getIdentifier());
-                final List<CtsFieldChain> nextFieldChains = current.appendAll(fields);
+                final List<CtsFieldChain> nextFieldChains = current.chainAll(fields);
                 for (int i = nextFieldChains.size() - 1; i >= 0; i--) {
                     queue.addFirst(nextFieldChains.get(i));
                 }

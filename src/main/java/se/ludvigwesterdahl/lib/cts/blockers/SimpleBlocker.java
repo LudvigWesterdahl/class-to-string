@@ -10,7 +10,7 @@ import java.util.Objects;
 /**
  * This {@link Blocker} is used to block any leaf or node when encountered.
  */
-public final class SimpleBlocker implements Blocker {
+public final class SimpleBlocker extends AbstractBlocker {
 
     private final Identifier leafOrNode;
     private final Boolean blockNodes;
@@ -69,20 +69,5 @@ public final class SimpleBlocker implements Blocker {
         }
 
         return Objects.equals(blockNodes, field.isNode());
-    }
-
-    @Override
-    public void enterNode(final CtsFieldChain nodeFieldChain) {
-        // empty
-    }
-
-    @Override
-    public void consumeLeaf(final CtsFieldChain leafFieldChain) {
-        // empty
-    }
-
-    @Override
-    public void leaveNode(final CtsFieldChain nodeFieldChain) {
-        // empty
     }
 }

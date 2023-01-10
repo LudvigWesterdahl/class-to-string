@@ -9,7 +9,7 @@ import java.lang.reflect.Modifier;
 /**
  * This {@link Blocker} is used to block leaf.
  */
-public final class LeafBlocker implements Blocker {
+public final class LeafBlocker extends AbstractBlocker {
 
     private static final class FieldHolder {
         private static final LeafBlocker INSTANCE = new LeafBlocker();
@@ -30,21 +30,6 @@ public final class LeafBlocker implements Blocker {
 
     @Override
     public boolean block(final CtsFieldChain fieldChain) {
-        return fieldChain.isLeaf();
-    }
-
-    @Override
-    public void enterNode(final CtsFieldChain nodeFieldChain) {
-        // empty
-    }
-
-    @Override
-    public void consumeLeaf(final CtsFieldChain leafFieldChain) {
-        // empty
-    }
-
-    @Override
-    public void leaveNode(final CtsFieldChain nodeFieldChain) {
-        // empty
+        return !fieldChain.head().isNode();
     }
 }

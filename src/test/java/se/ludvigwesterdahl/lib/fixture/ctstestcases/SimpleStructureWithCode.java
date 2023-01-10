@@ -1,30 +1,20 @@
-package se.ludvigwesterdahl.lib.fixture;
+package se.ludvigwesterdahl.lib.fixture.ctstestcases;
 
 import se.ludvigwesterdahl.lib.cts.ClassToStringGenerator;
 import se.ludvigwesterdahl.lib.cts.CtsFieldChain;
 import se.ludvigwesterdahl.lib.cts.Identifier;
 import se.ludvigwesterdahl.lib.cts.blockers.LoopBlocker;
-import se.ludvigwesterdahl.lib.cts.strategy.FlatGenerationStrategy;
-import se.ludvigwesterdahl.lib.cts.strategy.GenerationStrategy;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.function.Supplier;
 
 import static se.ludvigwesterdahl.lib.fixture.CtsFieldChainFixture.appendPrivateLeaf;
 import static se.ludvigwesterdahl.lib.fixture.CtsFieldChainFixture.appendPrivateNode;
-import static se.ludvigwesterdahl.lib.fixture.CtsNotification.Type.*;
-import static se.ludvigwesterdahl.lib.fixture.CtsNotification.notification;
+import static se.ludvigwesterdahl.lib.fixture.GenerationStrategyFixture.newDefaultFlatGenerationStrategy;
+import static se.ludvigwesterdahl.lib.fixture.ctstestcases.CtsNotification.Type.*;
+import static se.ludvigwesterdahl.lib.fixture.ctstestcases.CtsNotification.notification;
 
 public final class SimpleStructureWithCode implements CtsTestCaseGroup {
-
-    private static final Supplier<GenerationStrategy> GENERATION_STRATEGY_SUPPLIER = () ->
-            new FlatGenerationStrategy.Builder()
-                    .withPathSeparator(",")
-                    .withLevelMarker("/")
-                    .withNodes(false)
-                    .withLeaf(true)
-                    .build();
 
     /**
      * The class structure used in the following test cases.
@@ -48,7 +38,7 @@ public final class SimpleStructureWithCode implements CtsTestCaseGroup {
         public ClassToStringGenerator generator() {
             return ClassToStringGenerator.from(Simple.class)
                     .addNode(Identifier.newInstance(Simple.Inner.class))
-                    .addObserver(GENERATION_STRATEGY_SUPPLIER.get());
+                    .addObserver(newDefaultFlatGenerationStrategy());
         }
 
         @Override
@@ -80,11 +70,13 @@ public final class SimpleStructureWithCode implements CtsTestCaseGroup {
 
         @Override
         public ClassToStringGenerator generator() {
+            final Class<?> type = Simple.Inner.class;
+
             return ClassToStringGenerator.from(Simple.class)
-                    .addNode(Identifier.newInstance(Simple.Inner.class))
-                    .rename(Identifier.newInstance(Simple.Inner.class, "inner"),
-                            Identifier.newInstance(Simple.Inner.class, "newInner"))
-                    .addObserver(GENERATION_STRATEGY_SUPPLIER.get());
+                    .rename(Identifier.newInstance(type, "inner"),
+                            Identifier.newInstance(type, "newInner"))
+                    .addNode(Identifier.newInstance(type))
+                    .addObserver(newDefaultFlatGenerationStrategy());
         }
 
         @Override
@@ -119,7 +111,7 @@ public final class SimpleStructureWithCode implements CtsTestCaseGroup {
             return ClassToStringGenerator.from(Simple.class)
                     .addNode(Identifier.newInstance(Simple.Inner.class))
                     .embed(Identifier.newInstance(Simple.Inner.class))
-                    .addObserver(GENERATION_STRATEGY_SUPPLIER.get());
+                    .addObserver(newDefaultFlatGenerationStrategy());
         }
 
         @Override
@@ -160,7 +152,7 @@ public final class SimpleStructureWithCode implements CtsTestCaseGroup {
             // See javadoc for explanation.
             generator.embed(Identifier.newInstance(Simple.Inner.class, "date"));
 
-            return generator.addObserver(GENERATION_STRATEGY_SUPPLIER.get());
+            return generator.addObserver(newDefaultFlatGenerationStrategy());
         }
 
         @Override
@@ -189,21 +181,21 @@ public final class SimpleStructureWithCode implements CtsTestCaseGroup {
 
         @Override
         public ClassToStringGenerator generator() {
-            // The node that should have been added is Simple.Inner and not the LocalDate.
-            // Because the generator should check if it is a node before the actual rename happened.
+            // The node that should have been added is LocalDate and not the Simple.Inner.
+            // Because the generator should check if it is a node after the actual rename happened.
             // Therefore, the LocalDate which comes as from rename will be seen as a leaf.
             //
             // Adds a loop blocker because this test had previously resulted in an infinite loop.
             final ClassToStringGenerator generator = ClassToStringGenerator.from(Simple.class)
-                    .addNode(Identifier.newInstance(LocalDate.class))
                     .rename(Identifier.newInstance(Simple.Inner.class, "inner"),
                             Identifier.newInstance(LocalDate.class, "date"))
+                    .addNode(Identifier.newInstance(Simple.Inner.class))
                     .addBlocker(LoopBlocker.loop(Identifier.newInstance(LocalDate.class), 3));
 
             // This embedding will not do anything.
             generator.embed(Identifier.newInstance(Simple.Inner.class));
 
-            return generator.addObserver(GENERATION_STRATEGY_SUPPLIER.get());
+            return generator.addObserver(newDefaultFlatGenerationStrategy());
         }
 
         @Override
@@ -239,7 +231,7 @@ public final class SimpleStructureWithCode implements CtsTestCaseGroup {
                             Identifier.newInstance(Simple.Inner.class, "renamed"))
                     .embed(Identifier.newInstance(Simple.Inner.class, "renamed"));
 
-            return generator.addObserver(GENERATION_STRATEGY_SUPPLIER.get());
+            return generator.addObserver(newDefaultFlatGenerationStrategy());
         }
 
         @Override

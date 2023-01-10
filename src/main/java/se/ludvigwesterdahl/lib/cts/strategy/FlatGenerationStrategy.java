@@ -110,7 +110,7 @@ public final class FlatGenerationStrategy implements GenerationStrategy {
         // Generate once the root node has been left.
         if (result == null && nodeFieldChain.head().getIdentifier().getName().isEmpty()) {
             final int index = builder.lastIndexOf(getPathSeparator());
-            builder.delete(index, builder.length());
+            builder.delete(Math.max(0, index), builder.length());
             result = builder.toString();
         }
     }

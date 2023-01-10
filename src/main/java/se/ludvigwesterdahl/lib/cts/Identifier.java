@@ -3,6 +3,10 @@ package se.ludvigwesterdahl.lib.cts;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Immutable class to represent a field in a class or match when fields are traversed
+ * in the {@link ClassToStringGenerator}.
+ */
 public final class Identifier {
 
     private final Class<?> type;
@@ -16,6 +20,14 @@ public final class Identifier {
         hashCode = Objects.hash(type, name);
     }
 
+    /**
+     * Creates a new {@link Identifier} instance
+     * @param type the type
+     * @param name the name
+     * @return a new instance
+     * @throws NullPointerException if any of the arguments is {@code null}
+     * @throws IllegalArgumentException if {@code name} is blank
+     */
     public static Identifier newInstance(final Class<?> type, final String name) {
         Objects.requireNonNull(type);
         Objects.requireNonNull(name);
@@ -27,16 +39,30 @@ public final class Identifier {
         return new Identifier(type, name);
     }
 
+    /**
+     * Creates a new {@link Identifier} without a name.
+     * @param type the type
+     * @return a new instance
+     * @throws NullPointerException if {@code type} is null
+     */
     public static Identifier newInstance(final Class<?> type) {
         Objects.requireNonNull(type);
 
         return new Identifier(type, null);
     }
 
+    /**
+     * Returns the type.
+     * @return the type
+     */
     public Class<?> getType() {
         return type;
     }
 
+    /**
+     * Returns the name if one exists.
+     * @return maybe the name
+     */
     public Optional<String> getName() {
         return Optional.ofNullable(name);
     }

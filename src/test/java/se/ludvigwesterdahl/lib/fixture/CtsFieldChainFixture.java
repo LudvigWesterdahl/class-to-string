@@ -16,7 +16,7 @@ public final class CtsFieldChainFixture {
     public static CtsFieldChain appendPrivateLeaf(final CtsFieldChain nodeFieldChain,
                                            final Class<?> type,
                                            final String name) {
-        return nodeFieldChain.appendAll(List.of(
+        return nodeFieldChain.chainAll(List.of(
                 CtsField.newLeaf(Identifier.newInstance(type, name), Modifier.PRIVATE)
         )).get(0);
     }
@@ -24,7 +24,7 @@ public final class CtsFieldChainFixture {
     public static CtsFieldChain appendPrivateNode(final CtsFieldChain nodeFieldChain,
                                            final Class<?> type,
                                            final String name) {
-        return nodeFieldChain.appendAll(List.of(
+        return nodeFieldChain.chainAll(List.of(
                 CtsField.newNode(Identifier.newInstance(type, name), Modifier.PRIVATE)
         )).get(0);
     }

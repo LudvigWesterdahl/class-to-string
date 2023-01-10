@@ -4,9 +4,7 @@ public interface Observer {
 
     /**
      * Called after a node has been entered. <br/>
-     * Note that the first invocation of this will contain a {@link CtsField} with an {@link Identifier}
-     * that does not have a name, this can be used to determine when the traversal starts from the root. Any
-     * other {@link CtsField} will have an identifier with a name.
+     * Note that the first invocation of this will contain a {@link CtsFieldChain} that is the root.
      * Any state in the {@link Blocker} is highly recommended to be reset when this occurs.
      *
      * @param nodeFieldChain the node that was entered

@@ -1,4 +1,4 @@
-package se.ludvigwesterdahl.lib.fixture;
+package se.ludvigwesterdahl.lib.fixture.ctstestcases;
 
 import java.util.List;
 

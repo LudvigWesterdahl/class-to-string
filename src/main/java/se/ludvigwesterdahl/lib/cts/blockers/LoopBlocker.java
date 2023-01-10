@@ -12,7 +12,7 @@ import java.util.Objects;
  * Assume A -> B -> C -> B, then that would result in an infinite loop (B -> C -> B).
  * It can only be used to block repeated processing of leaf.
  */
-public final class LoopBlocker implements Blocker {
+public final class LoopBlocker extends AbstractBlocker {
 
     private final Identifier blockingPoint;
     private final int times;
@@ -76,11 +76,6 @@ public final class LoopBlocker implements Blocker {
         if (counting) {
             counter--;
         }
-    }
-
-    @Override
-    public void consumeLeaf(CtsFieldChain leafFieldChain) {
-
     }
 
     @Override

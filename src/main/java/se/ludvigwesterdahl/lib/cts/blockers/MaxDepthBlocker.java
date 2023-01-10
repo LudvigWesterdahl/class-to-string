@@ -7,7 +7,7 @@ import se.ludvigwesterdahl.lib.cts.Identifier;
 
 import java.util.Objects;
 
-public final class MaxDepthBlocker implements Blocker {
+public final class MaxDepthBlocker extends AbstractBlocker {
 
     private final Identifier blockingPoint;
     private final int continueLevels;
@@ -54,7 +54,7 @@ public final class MaxDepthBlocker implements Blocker {
 
     @Override
     public boolean block(final CtsFieldChain fieldChain) {
-        if (fieldChain.isLeaf()) {
+        if (!fieldChain.head().isNode()) {
             return false;
         }
 
@@ -80,11 +80,6 @@ public final class MaxDepthBlocker implements Blocker {
         if (counting) {
             nextLevel--;
         }
-    }
-
-    @Override
-    public void consumeLeaf(final CtsFieldChain leafFieldChain) {
-        // empty
     }
 
     @Override
