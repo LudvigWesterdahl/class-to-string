@@ -1,21 +1,20 @@
 package se.ludvigwesterdahl.lib.cts.blockers;
 
 import se.ludvigwesterdahl.lib.cts.Blocker;
-import se.ludvigwesterdahl.lib.cts.CtsField;
 import se.ludvigwesterdahl.lib.cts.CtsFieldChain;
 
 import java.lang.reflect.Modifier;
 
 /**
- * This {@link Blocker} is used to block leaf or nodes that have been declared {@code transient}.
+ * This {@link Blocker} is used to block leaf or nodes that have been declared {@code static}.
  */
-public final class TransientBlocker extends AbstractBlocker {
+public final class StaticBlocker extends AbstractBlocker {
 
     private static final class FieldHolder {
-        private static final TransientBlocker INSTANCE = new TransientBlocker();
+        private static final StaticBlocker INSTANCE = new StaticBlocker();
     }
 
-    private TransientBlocker() {
+    private StaticBlocker() {
         // empty
     }
 
@@ -30,6 +29,6 @@ public final class TransientBlocker extends AbstractBlocker {
 
     @Override
     public boolean block(final CtsFieldChain fieldChain) {
-        return Modifier.isTransient(fieldChain.head().getModifiers());
+        return Modifier.isStatic(fieldChain.head().getModifiers());
     }
 }

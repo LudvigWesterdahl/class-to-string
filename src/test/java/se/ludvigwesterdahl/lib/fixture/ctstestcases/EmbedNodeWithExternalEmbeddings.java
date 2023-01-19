@@ -36,7 +36,7 @@ public final class EmbedNodeWithExternalEmbeddings implements CtsTestCaseGroup {
             private Integer number;
         }
     }
-    
+
     private static final class Default implements CtsTestCase {
 
         @Override

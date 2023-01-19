@@ -19,7 +19,7 @@ public final class ClassToStringGenerator {
 
     private final Class<?> rootNode;
     private final Set<Identifier> nodes;
-    private final Map<Identifier, Identifier> renaming;
+    private final Map<Class<?>, Map<Identifier, Identifier>> renaming;
     private final Map<Identifier, Set<Identifier>> externalEmbeddings;
     private final Set<Identifier> embeddings;
     private final Set<Blocker> blockers;
@@ -27,7 +27,7 @@ public final class ClassToStringGenerator {
 
     private ClassToStringGenerator(final Class<?> rootNode,
                                    final Set<Identifier> nodes,
-                                   final Map<Identifier, Identifier> renaming,
+                                   final Map<Class<?>, Map<Identifier, Identifier>> renaming,
                                    final Map<Identifier, Set<Identifier>> externalEmbeddings,
                                    final Set<Identifier> embeddings,
                                    final Set<Blocker> blockers,
@@ -59,7 +59,37 @@ public final class ClassToStringGenerator {
     /**
      * Renames a node or leaf. Multiple calls with the same {@code from} will override the previous calls. <br/>
      * However, if multiple {@code from} {@link Identifier} has been provided where one includes just the type,
-     * and others include a name. Then the most specific one will be preferred.
+     * and others include a name. Then the most specific one will be preferred. <br/>
+     * If rename has been provided with a nodeType and one with {@code null}, then the most specific is used.
+     *
+     * @param nodeType the type of the node,
+     *                 if {@code null} then it is the same as {@link ClassToStringGenerator#rename(Identifier, Identifier)}
+     * @param from     the real identifier
+     * @param to       the new identifier
+     * @return this {@link ClassToStringGenerator} instance
+     * @throws NullPointerException     if {@code from} or {@code to} is {@code null}
+     * @throws IllegalArgumentException if {@code to} does not have a name
+     */
+    public ClassToStringGenerator rename(final Class<?> nodeType, final Identifier from, final Identifier to) {
+        Objects.requireNonNull(from);
+        Objects.requireNonNull(to);
+
+        if (to.getName().isEmpty()) {
+            throw new IllegalArgumentException("to is missing a name");
+        }
+
+        renaming.computeIfAbsent(nodeType, ignored -> new HashMap<>())
+                .put(from, to);
+
+        return this;
+    }
+
+    /**
+     * Renames a node or leaf. Multiple calls with the same {@code from} will override the previous calls. <br/>
+     * However, if multiple {@code from} {@link Identifier} has been provided where one includes just the type,
+     * and others include a name. Then the most specific one will be preferred. <br/>
+     * Note that this method renames all node or leaf found in any node. If a specific one is required,
+     * then use {@link ClassToStringGenerator#rename(Class, Identifier, Identifier)} instead.
      *
      * @param from the real identifier
      * @param to   the new identifier
@@ -68,14 +98,25 @@ public final class ClassToStringGenerator {
      * @throws IllegalArgumentException if {@code to} does not have a name
      */
     public ClassToStringGenerator rename(final Identifier from, final Identifier to) {
+        return rename(null, from, to);
+    }
+
+    /**
+     * Removes a renaming.
+     *
+     * @param nodeType the node
+     * @param from     the identifier to remove
+     * @return this {@link ClassToStringGenerator} instance
+     * @throws NullPointerException if {@code from == null}
+     */
+    public ClassToStringGenerator removeRename(Class<?> nodeType, final Identifier from) {
         Objects.requireNonNull(from);
-        Objects.requireNonNull(to);
 
-        if (to.getName().isEmpty()) {
-            throw new IllegalArgumentException("to is missing a name");
+        final Map<Identifier, Identifier> rename = renaming.get(nodeType);
+
+        if (rename != null) {
+            rename.remove(from);
         }
-
-        renaming.put(from, to);
 
         return this;
     }
@@ -88,18 +129,12 @@ public final class ClassToStringGenerator {
      * @throws NullPointerException if {@code from == null}
      */
     public ClassToStringGenerator removeRename(final Identifier from) {
-        Objects.requireNonNull(from);
-
-        renaming.remove(from);
-
-        return this;
+        return removeRename(null, from);
     }
 
     /**
      * Embeds a node into another node. This can be used if you want to inject some fields or nodes into an
      * existing structure without modifying it. <br/>
-     * TODO: might not be true: Note that embeddings are only performed if no {@link Blocker} blocks the node from being entered. <br/>
-     * TODO: check this javadoc to ensure it is correct
      * If the field you want to embed is a field in the same class that it should be embedded into, use
      * the {@link ClassToStringGenerator#embed(Identifier)} instead. <br/>
      * Multiple calls will override previous calls, however, if multiple {@code from} {@link Identifier}
@@ -266,11 +301,26 @@ public final class ClassToStringGenerator {
         return addObserver(blocker);
     }
 
-    private Identifier getIdentifier(final Class<?> type, final String name) {
+    private Identifier getRenamedIdentifier(final Identifier node, final Identifier identifier) {
+        final Identifier specificRename = Optional.ofNullable(renaming.get(node.getType()))
+                .map(r -> r.get(identifier))
+                .orElse(null);
+
+        if (specificRename != null) {
+            return specificRename;
+        }
+
+        return Optional.ofNullable(renaming.get(null))
+                .map(r -> r.get(identifier))
+                .orElse(null);
+    }
+
+    private Identifier getIdentifier(final Identifier node, final Class<?> type, final String name) {
         final Identifier generalIdentifier = Identifier.newInstance(type);
-        final Identifier renamedGeneralIdentifier = renaming.get(generalIdentifier);
+        final Identifier renamedGeneralIdentifier = getRenamedIdentifier(node, generalIdentifier);
+
         final Identifier specificIdentifier = Identifier.newInstance(type, name);
-        final Identifier renamedSpecificIdentifier = renaming.get(specificIdentifier);
+        final Identifier renamedSpecificIdentifier = getRenamedIdentifier(node, specificIdentifier);
 
         if (renamedSpecificIdentifier != null) {
             return renamedSpecificIdentifier;
@@ -314,11 +364,13 @@ public final class ClassToStringGenerator {
     }
 
     private List<CtsField> getFields(final Identifier originalNode, final Identifier node) {
-        if (Objects.equals(originalNode, node)) {
+        if (originalNode.matches(node)) {
             throw new IllegalStateException("illegal loop detected");
         }
 
-        final Identifier currentNode = node == null ? originalNode : node;
+        final Identifier currentNode = node == null
+                ? originalNode
+                : node;
 
         final List<CtsField> fields = new ArrayList<>();
         for (final Field rawField : currentNode.getType().getDeclaredFields()) {
@@ -326,14 +378,16 @@ public final class ClassToStringGenerator {
             final String name = rawField.getName();
             final int modifiers = rawField.getModifiers();
 
-            final Identifier identifier = getIdentifier(type, name);
+            final Identifier identifier = getIdentifier(currentNode, type, name);
 
-            if (isNode(identifier) && isEmbedded(identifier)) {
-                final List<CtsField> embeddedFields = getFields(originalNode, identifier);
-                fields.addAll(embeddedFields);
-            } else if (isNode(identifier)) {
-                final CtsField field = CtsField.newNode(identifier, modifiers);
-                fields.add(field);
+            if (isNode(identifier)) {
+                if (isEmbedded(identifier)) {
+                    final List<CtsField> embeddedFields = getFields(originalNode, identifier);
+                    fields.addAll(embeddedFields);
+                } else {
+                    final CtsField field = CtsField.newNode(identifier, modifiers);
+                    fields.add(field);
+                }
             } else {
                 final CtsField field = CtsField.newLeaf(identifier, modifiers);
                 fields.add(field);

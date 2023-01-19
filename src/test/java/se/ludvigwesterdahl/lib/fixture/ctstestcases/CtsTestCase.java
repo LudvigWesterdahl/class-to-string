@@ -14,7 +14,6 @@ public interface CtsTestCase {
 
     List<CtsNotification> expectedNotifications();
 
-
     default boolean hasExpectedGenerate() {
         return true;
     }

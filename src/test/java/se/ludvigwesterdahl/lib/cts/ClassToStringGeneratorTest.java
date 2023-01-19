@@ -19,7 +19,8 @@ final class ClassToStringGeneratorTest {
     private static final List<CtsTestCaseGroup> TEST_CASE_GROUPS = List.of(
             new SimpleStructureWithCode(),
             new EmbedBeforeBlocker(),
-            new EmbedNodeWithExternalEmbeddings()
+            new EmbedNodeWithExternalEmbeddings(),
+            new ListGenericRename()
     );
 
     private static Stream<Arguments> toArguments(final Predicate<CtsTestCase> predicate) {
@@ -97,7 +98,7 @@ final class ClassToStringGeneratorTest {
     @Test
     void Should_ThrowException_When_CircularEmbeddingDetected() {
         final ClassToStringGenerator generator = ClassToStringGenerator.from(Circular.class)
-                        .embed(Identifier.newInstance(Circular.class));
+                .embed(Identifier.newInstance(Circular.class));
 
         assertThatCode(generator::iterate)
                 .isExactlyInstanceOf(IllegalStateException.class)
