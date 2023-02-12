@@ -2,7 +2,6 @@ package se.ludvigwesterdahl.lib.cts.strategy;
 
 import se.ludvigwesterdahl.lib.cts.CtsFieldChain;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -93,8 +92,6 @@ public final class FlatGenerationStrategy implements GenerationStrategy {
                     .append(getPathSeparator());
         }
     }
-
-
 
     @Override
     public void consumeLeaf(final CtsFieldChain leafFieldChain) {

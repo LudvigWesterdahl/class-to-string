@@ -29,9 +29,9 @@ public final class LoopBlocker extends AbstractBlocker {
      * Note that if {@code times == 0} then this is the same as {@link SimpleBlocker#block(Identifier)}.
      *
      * @param blockingPoint the leaf or node that is blocked
-     * @param times the maximum number of times {@code blockingPoint} can be entered
+     * @param times         the maximum number of times {@code blockingPoint} can be entered
      * @return a {@link Blocker} instance
-     * @throws NullPointerException if {@code blockingPoint == null}
+     * @throws NullPointerException     if {@code blockingPoint == null}
      * @throws IllegalArgumentException if {@code times < 0}
      */
     public static Blocker loop(final Identifier blockingPoint, int times) {

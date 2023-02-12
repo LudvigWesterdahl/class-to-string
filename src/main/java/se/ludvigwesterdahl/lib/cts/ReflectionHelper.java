@@ -20,4 +20,23 @@ final class ReflectionHelper {
 
         return true;
     }
+
+    static <T, R> R getValueUnlessDefault(final Class<T> annotationType,
+                                          final T instance,
+                                          final Class<R> valueType,
+                                          final String name,
+                                          final R value) {
+        try {
+            final Method method = annotationType.getMethod(name);
+            final R defaultValue = valueType.cast(method.getDefaultValue());
+            final R currentValue = valueType.cast(method.invoke(instance));
+            if (Objects.equals(defaultValue, currentValue)) {
+                return value;
+            }
+
+            return currentValue;
+        } catch (final NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

@@ -130,8 +130,8 @@ public final class ListGenericRenameEmbedWithAnnotation implements CtsTestCaseGr
         @Override
         public ClassToStringGenerator generator() {
             return ClassToStringGenerator.from(Root.class)
-                    .removeNode(Identifier.newInstance(Root.First.class))
-                    .removeNode(Identifier.newInstance(Root.Second.class))
+                    .removeNode(Identifier.newInstance(Root.First.class, "first"))
+                    .removeNode(Identifier.newInstance(Root.Second.class, "second"))
                     .addObserver(newDefaultFlatGenerationStrategy());
         }
 
@@ -139,8 +139,8 @@ public final class ListGenericRenameEmbedWithAnnotation implements CtsTestCaseGr
         public List<CtsNotification> expectedNotifications() {
             final CtsFieldChain root = CtsFieldChain.newRootInstance(Root.class);
 
-            final CtsFieldChain leaf1 = appendPrivateNode(root, Root.First.class, "first");
-            final CtsFieldChain leaf2 = appendPrivateNode(root, Root.Second.class, "second");
+            final CtsFieldChain leaf1 = appendPrivateLeaf(root, Root.First.class, "first");
+            final CtsFieldChain leaf2 = appendPrivateLeaf(root, Root.Second.class, "second");
 
             return List.of(
                     notification(ENTER_NODE, root),

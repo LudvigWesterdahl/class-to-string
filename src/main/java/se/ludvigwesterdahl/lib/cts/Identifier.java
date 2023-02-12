@@ -22,10 +22,11 @@ public final class Identifier {
 
     /**
      * Creates a new {@link Identifier} instance
+     *
      * @param type the type
      * @param name the name
      * @return a new instance
-     * @throws NullPointerException if any of the arguments is {@code null}
+     * @throws NullPointerException     if any of the arguments is {@code null}
      * @throws IllegalArgumentException if {@code name} is blank
      */
     public static Identifier newInstance(final Class<?> type, final String name) {
@@ -41,6 +42,7 @@ public final class Identifier {
 
     /**
      * Creates a new {@link Identifier} without a name.
+     *
      * @param type the type
      * @return a new instance
      * @throws NullPointerException if {@code type} is null
@@ -53,6 +55,7 @@ public final class Identifier {
 
     /**
      * Returns the type.
+     *
      * @return the type
      */
     public Class<?> getType() {
@@ -61,6 +64,7 @@ public final class Identifier {
 
     /**
      * Returns the name if one exists.
+     *
      * @return maybe the name
      */
     public Optional<String> getName() {
