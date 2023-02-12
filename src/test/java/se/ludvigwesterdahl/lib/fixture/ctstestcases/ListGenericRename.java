@@ -66,7 +66,7 @@ public final class ListGenericRename implements CtsTestCaseGroup {
 
             final CtsFieldChain node3 = appendPrivateNode(root, Root.Second.class, "second");
             final CtsFieldChain node4 = appendPrivateNode(node3, Root.First.FirstResult.class, "firstResultsRenamed");
-            final CtsFieldChain leaf5 = appendPrivateLeaf(node4, String.class, "firstValue");
+            final CtsFieldChain leaf2 = appendPrivateLeaf(node4, String.class, "firstValue");
 
             return List.of(
                     notification(ENTER_NODE, root),
@@ -77,7 +77,7 @@ public final class ListGenericRename implements CtsTestCaseGroup {
                     notification(LEAVE_NODE, node1),
                     notification(ENTER_NODE, node3),
                     notification(ENTER_NODE, node4),
-                    notification(CONSUME_LEAF, leaf5),
+                    notification(CONSUME_LEAF, leaf2),
                     notification(LEAVE_NODE, node4),
                     notification(LEAVE_NODE, node3),
                     notification(LEAVE_NODE, root)

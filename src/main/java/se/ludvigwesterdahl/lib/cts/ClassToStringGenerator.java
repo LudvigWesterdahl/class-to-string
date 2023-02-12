@@ -42,14 +42,26 @@ public final class ClassToStringGenerator {
     }
 
     public static ClassToStringGenerator from(final Class<?> rootNode) {
-        // Compute structure based on annotations.
-
         final Set<Identifier> nodes = new HashSet<>();
         nodes.add(Identifier.newInstance(rootNode));
+        final Map<Class<?>, Map<Identifier, Identifier>> renaming = new HashMap<>();
+        /*
+        for (final Field field : rootNode.getDeclaredFields()) {
+            final CtsName ctsName = field.getAnnotation(CtsName.class);
+            if (ctsName != null) {
+
+            }
+
+            final CtsNode ctsNode = field.getAnnotation(CtsNode.class);
+            if (ctsNode == null) {
+                continue;
+            }
+        }
+        */
 
         return new ClassToStringGenerator(rootNode,
                 nodes,
-                new HashMap<>(),
+                renaming,
                 new HashMap<>(),
                 new HashSet<>(),
                 new HashSet<>(),
@@ -301,7 +313,7 @@ public final class ClassToStringGenerator {
         return addObserver(blocker);
     }
 
-    private Identifier getRenamedIdentifier(final Identifier node, final Identifier identifier) {
+    private Identifier getRenamedIdentifier(final Identifier node, final Identifier identifier, final Field rawField) {
         final Identifier specificRename = Optional.ofNullable(renaming.get(node.getType()))
                 .map(r -> r.get(identifier))
                 .orElse(null);
@@ -310,17 +322,46 @@ public final class ClassToStringGenerator {
             return specificRename;
         }
 
-        return Optional.ofNullable(renaming.get(null))
+        final Identifier generalRename = Optional.ofNullable(renaming.get(null))
                 .map(r -> r.get(identifier))
                 .orElse(null);
+
+        if (generalRename != null) {
+            return generalRename;
+        }
+
+        final String name = identifier.getName()
+                .orElse(null);
+        if (name == null) {
+            return null;
+        }
+
+        // The type of this field will be the same as the given identifier.
+        final CtsName ctsName = rawField.getAnnotation(CtsName.class);
+        if (ctsName == null) {
+            return null;
+        }
+        if (ReflectionHelper.hasDefaultValues(CtsName.class, ctsName)) {
+            return null;
+        } else {
+            final Class<?> newType = ctsName.type().equals(CtsName.class)
+                    ? identifier.getType()
+                    : ctsName.type();
+            final String newName = ctsName.name().isBlank()
+                    ? name
+                    : ctsName.name();
+            return Identifier.newInstance(newType, newName);
+        }
     }
 
-    private Identifier getIdentifier(final Identifier node, final Class<?> type, final String name) {
+    private Identifier getIdentifier(final Identifier node, final Field rawField) {
+        final Class<?> type = rawField.getType();
+        final String name = rawField.getName();
         final Identifier generalIdentifier = Identifier.newInstance(type);
-        final Identifier renamedGeneralIdentifier = getRenamedIdentifier(node, generalIdentifier);
+        final Identifier renamedGeneralIdentifier = getRenamedIdentifier(node, generalIdentifier, rawField);
 
         final Identifier specificIdentifier = Identifier.newInstance(type, name);
-        final Identifier renamedSpecificIdentifier = getRenamedIdentifier(node, specificIdentifier);
+        final Identifier renamedSpecificIdentifier = getRenamedIdentifier(node, specificIdentifier, rawField);
 
         if (renamedSpecificIdentifier != null) {
             return renamedSpecificIdentifier;
@@ -333,20 +374,34 @@ public final class ClassToStringGenerator {
         return specificIdentifier;
     }
 
-    private boolean isEmbedded(final Identifier identifier) {
+    private boolean isEmbedded(final Identifier identifier, final Field rawField) {
         if (embeddings.contains(identifier)) {
             return true;
         }
 
-        return embeddings.contains(identifier.stripName());
+        if (embeddings.contains(identifier.stripName())) {
+            return true;
+        }
+
+        final CtsNode ctsNode = rawField.getAnnotation(CtsNode.class);
+        if (ctsNode == null) {
+            return false;
+        }
+
+        return ctsNode.embed();
     }
 
-    private boolean isNode(final Identifier identifier) {
+    private boolean isNode(final Identifier identifier, final Field rawField) {
         if (nodes.contains(identifier)) {
             return true;
         }
 
-        return nodes.contains(identifier.stripName());
+        if (nodes.contains(identifier.stripName())) {
+            return true;
+        }
+
+        final CtsNode ctsNode = rawField.getAnnotation(CtsNode.class);
+        return ctsNode != null;
     }
 
     private Set<Identifier> getExternalEmbeddings(final Identifier node) {
@@ -374,14 +429,11 @@ public final class ClassToStringGenerator {
 
         final List<CtsField> fields = new ArrayList<>();
         for (final Field rawField : currentNode.getType().getDeclaredFields()) {
-            final Class<?> type = rawField.getType();
-            final String name = rawField.getName();
             final int modifiers = rawField.getModifiers();
+            final Identifier identifier = getIdentifier(currentNode, rawField);
 
-            final Identifier identifier = getIdentifier(currentNode, type, name);
-
-            if (isNode(identifier)) {
-                if (isEmbedded(identifier)) {
+            if (isNode(identifier, rawField)) {
+                if (isEmbedded(identifier, rawField)) {
                     final List<CtsField> embeddedFields = getFields(originalNode, identifier);
                     fields.addAll(embeddedFields);
                 } else {

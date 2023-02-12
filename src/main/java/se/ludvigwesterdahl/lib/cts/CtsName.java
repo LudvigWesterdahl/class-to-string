@@ -6,11 +6,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * By default, fields are leafs unless node is specified on the class or the class field.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface CtsLeaf {
-
-    boolean ignore() default false;
+public @interface CtsName {
 
     String name() default "";
+
+    Class<?> type() default CtsName.class;
 }

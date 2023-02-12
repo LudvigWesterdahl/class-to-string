@@ -10,10 +10,8 @@ import java.lang.annotation.Target;
  * By default, fields are leafs unless node is specified on the class or the class field.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.TYPE})
+@Target(ElementType.FIELD)
 public @interface CtsNode {
 
-    boolean ignore() default false;
-
-    String name() default "";
+    boolean embed() default false;
 }

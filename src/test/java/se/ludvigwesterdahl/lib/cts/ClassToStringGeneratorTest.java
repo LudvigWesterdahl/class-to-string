@@ -20,7 +20,8 @@ final class ClassToStringGeneratorTest {
             new SimpleStructureWithCode(),
             new EmbedBeforeBlocker(),
             new EmbedNodeWithExternalEmbeddings(),
-            new ListGenericRename()
+            new ListGenericRename(),
+            new ListGenericRenameEmbedWithAnnotation()
     );
 
     private static Stream<Arguments> toArguments(final Predicate<CtsTestCase> predicate) {
