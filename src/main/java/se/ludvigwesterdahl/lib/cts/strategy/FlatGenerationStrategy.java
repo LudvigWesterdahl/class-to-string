@@ -41,7 +41,7 @@ public final class FlatGenerationStrategy implements GenerationStrategy {
             return this;
         }
 
-        public GenerationStrategy build() {
+        public FlatGenerationStrategy build() {
             return new FlatGenerationStrategy(this);
         }
     }
