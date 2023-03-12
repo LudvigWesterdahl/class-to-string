@@ -40,17 +40,6 @@ public final class MaxDepthBlocker extends AbstractBlocker {
         return new MaxDepthBlocker(blockingPoint, continueLevels);
     }
 
-    /**
-     * Same as calling {@link MaxDepthBlocker#newInstance(Identifier, int)}
-     * with {@code continueLevels == 0}.
-     *
-     * @param node the node
-     * @return a {@link Blocker} instance
-     */
-    public static Blocker stopAfter(final Identifier node) {
-        return newInstance(node, 0);
-    }
-
     @Override
     public boolean block(final CtsFieldChain fieldChain) {
         if (!fieldChain.head().isNode()) {
@@ -83,7 +72,11 @@ public final class MaxDepthBlocker extends AbstractBlocker {
 
     @Override
     public void leaveNode(final CtsFieldChain nodeFieldChain) {
-        if (blockingPoint.matches(nodeFieldChain.head().getIdentifier())) {
+        if (counting) {
+            nextLevel++;
+        }
+
+        if (counting && nextLevel == continueLevels && blockingPoint.matches(nodeFieldChain.head().getIdentifier())) {
             reset();
         }
     }

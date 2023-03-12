@@ -13,19 +13,33 @@ public final class CtsFieldChainFixture {
         throw new AssertionError("this private constructor is suppressed");
     }
 
+    public static CtsFieldChain appendLeaf(final CtsFieldChain nodeFieldChain,
+                                           final Class<?> type,
+                                           final String name,
+                                           final int modifiers) {
+        return nodeFieldChain.chainAll(List.of(
+                CtsField.newLeaf(Identifier.newInstance(type, name), modifiers)
+        )).get(0);
+    }
+
+    public static CtsFieldChain appendNode(final CtsFieldChain nodeFieldChain,
+                                           final Class<?> type,
+                                           final String name,
+                                           final int modifiers) {
+        return nodeFieldChain.chainAll(List.of(
+                CtsField.newNode(Identifier.newInstance(type, name), modifiers)
+        )).get(0);
+    }
+
     public static CtsFieldChain appendPrivateLeaf(final CtsFieldChain nodeFieldChain,
                                                   final Class<?> type,
                                                   final String name) {
-        return nodeFieldChain.chainAll(List.of(
-                CtsField.newLeaf(Identifier.newInstance(type, name), Modifier.PRIVATE)
-        )).get(0);
+        return appendLeaf(nodeFieldChain, type, name, Modifier.PRIVATE);
     }
 
     public static CtsFieldChain appendPrivateNode(final CtsFieldChain nodeFieldChain,
                                                   final Class<?> type,
                                                   final String name) {
-        return nodeFieldChain.chainAll(List.of(
-                CtsField.newNode(Identifier.newInstance(type, name), Modifier.PRIVATE)
-        )).get(0);
+        return appendNode(nodeFieldChain, type, name, Modifier.PRIVATE);
     }
 }

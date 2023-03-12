@@ -493,10 +493,8 @@ public final class ClassToStringGenerator {
 
             if (enteredNodes.contains(current)) {
                 notifyLeaveNode(current);
-
             } else if (!current.head().isNode()) {
                 notifyConsumeLeaf(current);
-
             } else {
                 notifyEnterNode(current);
                 enteredNodes.add(current);

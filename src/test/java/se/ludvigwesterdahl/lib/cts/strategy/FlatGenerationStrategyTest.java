@@ -16,10 +16,16 @@ final class FlatGenerationStrategyTest {
 
     @Test
     void Should_HaveDefaultConfiguration_When_BuilderIsNotModified() {
-        final String expectedPathSeparator = ",";
-        final String expectedLevelMarker = "/";
-        final boolean expectedNodes = false;
-        final boolean expectedLeaf = true;
+        final FlatGenerationStrategy expectedStrategy = new FlatGenerationStrategy.Builder()
+                .withPathSeparator(",")
+                .withLevelMarker("/")
+                .withNodes(false)
+                .withLeaf(true)
+                .build();
+        final String expectedPathSeparator = expectedStrategy.getPathSeparator();
+        final String expectedLevelMarker = expectedStrategy.getLevelMarker();
+        final boolean expectedNodes = expectedStrategy.isNodes();
+        final boolean expectedLeaf = expectedStrategy.isLeaf();
 
         final FlatGenerationStrategy strategy = new FlatGenerationStrategy.Builder()
                 .build();

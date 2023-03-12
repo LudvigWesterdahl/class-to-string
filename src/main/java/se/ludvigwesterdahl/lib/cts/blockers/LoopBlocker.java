@@ -10,14 +10,12 @@ import java.util.Objects;
 /**
  * This {@link se.ludvigwesterdahl.lib.cts.Blocker} is used to block repeated traversals into a node. <br/>
  * Assume A -> B -> C -> B, then that would result in an infinite loop (B -> C -> B).
- * It can only be used to block repeated processing of leaf.
  */
 public final class LoopBlocker extends AbstractBlocker {
 
     private final Identifier blockingPoint;
     private final int times;
     private int counter;
-    private boolean counting;
 
     private LoopBlocker(final Identifier blockingPoint, int times) {
         this.blockingPoint = blockingPoint;
@@ -49,7 +47,6 @@ public final class LoopBlocker extends AbstractBlocker {
 
     private void reset() {
         counter = times;
-        counting = false;
     }
 
     @Override
@@ -59,7 +56,7 @@ public final class LoopBlocker extends AbstractBlocker {
             return false;
         }
 
-        return counter < 0;
+        return counter <= 0;
     }
 
     @Override
@@ -70,18 +67,7 @@ public final class LoopBlocker extends AbstractBlocker {
         }
 
         if (blockingPoint.matches(nodeFieldChain.head().getIdentifier())) {
-            counting = true;
-        }
-
-        if (counting) {
             counter--;
-        }
-    }
-
-    @Override
-    public void leaveNode(CtsFieldChain nodeFieldChain) {
-        if (blockingPoint.matches(nodeFieldChain.head().getIdentifier())) {
-            reset();
         }
     }
 }
