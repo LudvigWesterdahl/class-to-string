@@ -6,6 +6,10 @@ import java.util.Objects;
 
 final class ReflectionHelper {
 
+    private ReflectionHelper() {
+        throw new AssertionError("this private constructor is suppressed");
+    }
+
     static <T> boolean hasDefaultValues(final Class<T> annotationType, final T instance) {
         final Method[] methods = annotationType.getDeclaredMethods();
         for (final Method method : methods) {
@@ -21,11 +25,11 @@ final class ReflectionHelper {
         return true;
     }
 
-    static <T, R> R getValueUnlessDefault(final Class<T> annotationType,
-                                          final T instance,
-                                          final Class<R> valueType,
-                                          final String name,
-                                          final R value) {
+    static <T, R> R getAnnotationValue(final Class<T> annotationType,
+                                       final T instance,
+                                       final Class<R> valueType,
+                                       final String name,
+                                       final R value) {
         try {
             final Method method = annotationType.getMethod(name);
             final R defaultValue = valueType.cast(method.getDefaultValue());

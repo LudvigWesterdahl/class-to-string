@@ -59,13 +59,13 @@ public final class ClassToStringGenerator {
             final CtsName ctsName = field.getAnnotation(CtsName.class);
             Identifier identifier = Identifier.newInstance(field.getType(), field.getName());
             if (ctsName != null && !ReflectionHelper.hasDefaultValues(CtsName.class, ctsName)) {
-                final Class<?> newType = ReflectionHelper.getValueUnlessDefault(
+                final Class<?> newType = ReflectionHelper.getAnnotationValue(
                         CtsName.class,
                         ctsName,
                         Class.class,
                         "type",
                         identifier.getType());
-                final String newName = ReflectionHelper.getValueUnlessDefault(
+                final String newName = ReflectionHelper.getAnnotationValue(
                         CtsName.class,
                         ctsName,
                         String.class,
