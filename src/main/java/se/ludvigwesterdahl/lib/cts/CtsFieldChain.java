@@ -3,6 +3,7 @@ package se.ludvigwesterdahl.lib.cts;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * This <b>immutable</b> class represents a chain of {@link CtsField}.
@@ -24,6 +25,7 @@ public final class CtsFieldChain {
      * @return a new chain instance
      */
     public static CtsFieldChain newRootInstance(final Class<?> rootType) {
+        Objects.requireNonNull(rootType);
         final CtsField rootField = CtsField.newNode(Identifier.newInstance(rootType), 0);
         final List<CtsField> fields = new ArrayList<>();
         fields.add(rootField);

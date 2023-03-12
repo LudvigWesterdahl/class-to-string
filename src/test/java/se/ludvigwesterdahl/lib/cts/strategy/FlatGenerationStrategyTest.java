@@ -124,4 +124,16 @@ final class FlatGenerationStrategyTest {
 
         assertThat(actual).isEqualTo(expected);
     }
+
+    @Test
+    void Should_ReturnEmptyString_When_GenerateIsCalledEarly() {
+        final FlatGenerationStrategy strategy = new FlatGenerationStrategy.Builder()
+                .build();
+        final CtsFieldChain root = CtsFieldChain.newRootInstance(Object.class);
+        strategy.enterNode(root);
+
+        final String actual = strategy.generate();
+
+        assertThat(actual).isEmpty();
+    }
 }

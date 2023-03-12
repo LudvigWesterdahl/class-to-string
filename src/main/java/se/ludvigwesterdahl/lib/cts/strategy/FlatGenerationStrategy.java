@@ -80,7 +80,7 @@ public final class FlatGenerationStrategy implements GenerationStrategy {
     @Override
     public void enterNode(final CtsFieldChain nodeFieldChain) {
         // Reset when root node is encountered.
-        if (result != null && nodeFieldChain.head().getIdentifier().getName().isEmpty()) {
+        if (result != null && nodeFieldChain.isRoot()) {
             builder = new StringBuilder();
             result = null;
             return;
@@ -105,7 +105,7 @@ public final class FlatGenerationStrategy implements GenerationStrategy {
     @Override
     public void leaveNode(final CtsFieldChain nodeFieldChain) {
         // Generate once the root node has been left.
-        if (result == null && nodeFieldChain.head().getIdentifier().getName().isEmpty()) {
+        if (result == null && nodeFieldChain.isRoot()) {
             final int index = builder.lastIndexOf(getPathSeparator());
             builder.delete(Math.max(0, index), builder.length());
             result = builder.toString();

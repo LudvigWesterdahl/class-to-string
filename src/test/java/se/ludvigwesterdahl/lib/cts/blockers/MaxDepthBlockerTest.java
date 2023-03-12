@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static se.ludvigwesterdahl.lib.fixture.CtsFieldChainFixture.appendPrivateLeaf;
 import static se.ludvigwesterdahl.lib.fixture.CtsFieldChainFixture.appendPrivateNode;
 
 final class MaxDepthBlockerTest {
@@ -189,5 +190,23 @@ final class MaxDepthBlockerTest {
         blocker.leaveNode(root);
 
         assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void Should_NotBlockLeaf_When_Block() {
+        final Blocker blocker = MaxDepthBlocker.newInstance(Identifier.newInstance(Object.class, "node"), 0);
+        final CtsFieldChain root = CtsFieldChain.newRootInstance(Object.class);
+        final CtsFieldChain node = appendPrivateNode(root, Object.class, "node");
+        final CtsFieldChain leaf = appendPrivateLeaf(node, String.class, "leaf");
+        blocker.enterNode(root);
+        blocker.enterNode(node);
+        final boolean expectedBlockNode = true;
+        final boolean expectedBlockLeaf = false;
+
+        final boolean actualBlockNode = blocker.block(node);
+        final boolean actualBlockLeaf = blocker.block(leaf);
+
+        assertThat(actualBlockNode).isEqualTo(expectedBlockNode);
+        assertThat(actualBlockLeaf).isEqualTo(expectedBlockLeaf);
     }
 }
