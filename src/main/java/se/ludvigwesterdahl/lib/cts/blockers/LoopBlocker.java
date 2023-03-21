@@ -42,7 +42,9 @@ public final class LoopBlocker extends AbstractBlocker {
             return SimpleBlocker.block(blockingPoint);
         }
 
-        return new LoopBlocker(blockingPoint, times);
+        final LoopBlocker blocker = new LoopBlocker(blockingPoint, times);
+        blocker.reset();
+        return blocker;
     }
 
     private void reset() {

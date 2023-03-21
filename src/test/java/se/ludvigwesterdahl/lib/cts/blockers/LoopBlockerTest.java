@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static se.ludvigwesterdahl.lib.fixture.CtsFieldChainFixture.appendPrivateNode;
 
 final class LoopBlockerTest {
@@ -51,7 +51,7 @@ final class LoopBlockerTest {
 
         blocker.leaveNode(chain);
 
-        verifyNoMoreInteractions(chain);
+        verifyNoInteractions(chain);
     }
 
     private static Stream<Arguments> Should_Return_When_Block_Provider() {

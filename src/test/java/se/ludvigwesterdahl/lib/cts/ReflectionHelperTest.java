@@ -27,6 +27,7 @@ final class ReflectionHelperTest {
         String second() default "NAME 2";
     }
 
+    @SuppressWarnings("unused") // The fields are not directly accessed.
     public static final class ClassExample {
 
         @AnnotationExample
@@ -48,7 +49,7 @@ final class ReflectionHelperTest {
         constructor.setAccessible(true);
 
         assertThatCode(constructor::newInstance)
-                .hasCauseExactlyInstanceOf(AssertionError.class)
+                .hasRootCauseExactlyInstanceOf(AssertionError.class)
                 .hasRootCauseMessage("this private constructor is suppressed");
     }
 

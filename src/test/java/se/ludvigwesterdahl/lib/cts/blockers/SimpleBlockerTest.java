@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static se.ludvigwesterdahl.lib.fixture.CtsFieldChainFixture.appendPrivateLeaf;
 import static se.ludvigwesterdahl.lib.fixture.CtsFieldChainFixture.appendPrivateNode;
 
@@ -33,7 +33,7 @@ final class SimpleBlockerTest {
 
         blocker.enterNode(chain);
 
-        verifyNoMoreInteractions(chain);
+        verifyNoInteractions(chain);
     }
 
     private static Stream<Arguments> Should_DoNothing_When_ConsumeLeaf_Provider() {
@@ -52,7 +52,7 @@ final class SimpleBlockerTest {
 
         blocker.consumeLeaf(chain);
 
-        verifyNoMoreInteractions(chain);
+        verifyNoInteractions(chain);
     }
 
     private static Stream<Arguments> Should_DoNothing_When_LeaveNode_Provider() {
@@ -71,7 +71,7 @@ final class SimpleBlockerTest {
 
         blocker.leaveNode(chain);
 
-        verifyNoMoreInteractions(chain);
+        verifyNoInteractions(chain);
     }
 
     private static Stream<Arguments> Should_Return_When_Block_Provider() {

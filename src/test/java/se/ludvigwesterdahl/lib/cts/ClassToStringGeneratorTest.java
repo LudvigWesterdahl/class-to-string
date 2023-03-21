@@ -21,7 +21,8 @@ final class ClassToStringGeneratorTest {
             new EmbedBeforeBlocker(),
             new EmbedNodeWithExternalEmbeddings(),
             new ListGenericRename(),
-            new ListGenericRenameEmbedWithAnnotation()
+            new ListGenericRenameEmbedWithAnnotation(),
+            new FixEmbedAnnotationCycle()
     );
 
     private static Stream<Arguments> toArguments(final Predicate<CtsTestCase> predicate) {
