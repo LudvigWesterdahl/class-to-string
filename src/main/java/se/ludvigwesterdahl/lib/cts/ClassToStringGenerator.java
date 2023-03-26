@@ -151,7 +151,7 @@ public final class ClassToStringGenerator {
      * @return this {@link ClassToStringGenerator} instance
      * @throws NullPointerException if {@code from == null}
      */
-    public ClassToStringGenerator removeRename(Class<?> nodeType, final Identifier from) {
+    public ClassToStringGenerator removeRename(final Class<?> nodeType, final Identifier from) {
         Objects.requireNonNull(from);
 
         final Map<Identifier, Identifier> rename = renaming.get(nodeType);
@@ -487,15 +487,13 @@ public final class ClassToStringGenerator {
 
         while (!queue.isEmpty()) {
             final CtsFieldChain current = queue.removeFirst();
-            if (isBlocked(current)) {
-                continue;
-            }
+            final boolean blocked = isBlocked(current);
 
             if (enteredNodes.contains(current)) {
                 notifyLeaveNode(current);
-            } else if (!current.head().isNode()) {
+            } else if (!blocked && !current.head().isNode()) {
                 notifyConsumeLeaf(current);
-            } else {
+            } else if (!blocked) {
                 notifyEnterNode(current);
                 enteredNodes.add(current);
                 queue.addFirst(current);

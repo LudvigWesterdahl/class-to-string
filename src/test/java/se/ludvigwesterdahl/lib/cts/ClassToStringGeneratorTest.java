@@ -22,7 +22,8 @@ final class ClassToStringGeneratorTest {
             new EmbedNodeWithExternalEmbeddings(),
             new ListGenericRename(),
             new ListGenericRenameEmbedWithAnnotation(),
-            new FixEmbedAnnotationCycle()
+            new FixEmbedAnnotationCycle(),
+            new RemoveRenameAnnotation()
     );
 
     private static Stream<Arguments> toArguments(final Predicate<CtsTestCase> predicate) {
@@ -105,5 +106,41 @@ final class ClassToStringGeneratorTest {
         assertThatCode(generator::iterate)
                 .isExactlyInstanceOf(IllegalStateException.class)
                 .hasMessage("illegal loop detected");
+    }
+
+    @Test
+    void Should_ThrowNpe_When_FromWithNull() {
+        assertThatCode(() -> ClassToStringGenerator.from(null))
+                .isExactlyInstanceOf(NullPointerException.class);
+    }
+
+    private static Stream<Arguments> Should_ThrowNpe_When_RenameGivenNull_Provider() {
+        return Stream.of(
+            Arguments.of("missing to", Identifier.newInstance(String.class, "string"), null),
+            Arguments.of("missing from", null, Identifier.newInstance(String.class, "string")),
+            Arguments.of("missing both", null, null)
+        );
+    }
+
+    @ParameterizedTest(name = "{index}: {0}")
+    @MethodSource("Should_ThrowNpe_When_RenameGivenNull_Provider")
+    void Should_ThrowNpe_When_RenameGivenNull(@SuppressWarnings("unused") final String description,
+                                              final Identifier from,
+                                              final Identifier to) {
+        final ClassToStringGenerator generator = ClassToStringGenerator.from(Object.class);
+
+        assertThatCode(() -> generator.rename(from, to))
+                .isExactlyInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void Should_ThrowException_When_RenameAndToMissingName() {
+        final ClassToStringGenerator generator = ClassToStringGenerator.from(Object.class);
+        final Identifier from = Identifier.newInstance(String.class);
+        final Identifier to = Identifier.newInstance(Object.class);
+
+        assertThatCode(() -> generator.rename(null, from, to))
+                .isExactlyInstanceOf(IllegalArgumentException.class)
+                .hasMessage("to is missing a name");
     }
 }
