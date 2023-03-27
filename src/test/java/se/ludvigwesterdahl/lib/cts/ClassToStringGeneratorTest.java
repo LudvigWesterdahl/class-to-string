@@ -19,7 +19,6 @@ final class ClassToStringGeneratorTest {
     private static final List<CtsTestCaseGroup> TEST_CASE_GROUPS = List.of(
             new SimpleStructureWithCode(),
             new EmbedBeforeBlocker(),
-            new EmbedNodeWithExternalEmbeddings(),
             new ListGenericRename(),
             new ListGenericRenameEmbedWithAnnotation(),
             new FixEmbedAnnotationCycle(),

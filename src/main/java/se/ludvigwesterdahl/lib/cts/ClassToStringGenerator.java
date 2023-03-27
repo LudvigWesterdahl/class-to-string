@@ -21,7 +21,6 @@ public final class ClassToStringGenerator {
     private final Map<Class<?>, Set<Identifier>> nodes;
     private final Map<Class<?>, Map<Identifier, Identifier>> renaming;
     private final Map<Class<?>, Set<Identifier>> embeddings;
-    private final Map<Identifier, Set<Identifier>> externalEmbeddings;
     private final Set<Blocker> blockers;
     private final Set<Observer> observers;
 
@@ -29,14 +28,12 @@ public final class ClassToStringGenerator {
                                    final Map<Class<?>, Set<Identifier>> nodes,
                                    final Map<Class<?>, Map<Identifier, Identifier>> renaming,
                                    final Map<Class<?>, Set<Identifier>> embeddings,
-                                   final Map<Identifier, Set<Identifier>> externalEmbeddings,
                                    final Set<Blocker> blockers,
                                    final Set<Observer> observers) {
         this.rootNode = rootNode;
         this.nodes = nodes;
         this.renaming = renaming;
         this.embeddings = embeddings;
-        this.externalEmbeddings = externalEmbeddings;
         this.blockers = blockers;
         this.observers = observers;
     }
@@ -95,7 +92,6 @@ public final class ClassToStringGenerator {
                 nodes,
                 renaming,
                 embeddings,
-                new HashMap<>(),
                 new HashSet<>(),
                 new HashSet<>());
     }
@@ -177,92 +173,7 @@ public final class ClassToStringGenerator {
     }
 
     /**
-     * Embeds a node into another node. This can be used if you want to inject some fields or nodes into an
-     * existing structure without modifying it. <br/>
-     * If the field you want to embed is a field in the same class that it should be embedded into, use
-     * the {@link ClassToStringGenerator#addEmbedding(Class, Identifier)} instead. <br/>
-     * Multiple calls will override previous calls, however, if multiple {@code from} {@link Identifier}
-     * has been provided as {@code toNode} where one includes just the type, and others include a name. Then
-     * the most specific one will be preferred. <br/>
-     * <b>Example</b> <br/>
-     * <pre>
-     * {@code
-     * embed(FullName.class, Identifier.newInstance(Person.class))
-     * embed(FirstName.class, Identifier.newInstance(Person.class, "erik"))
-     * embed(LastName.class, Identifier.newInstance(Person.class, "erik"))
-     * }
-     * </pre>
-     * Then the following will happen given when encountering fields. <br/>
-     * Assume the Person class looks like this. <br/>
-     * <pre>
-     * {@code
-     * public class Person {
-     *     private String ssn;
-     *     private int age;
-     * }
-     * }
-     * </pre>
-     * <pre>
-     * {@code
-     * public class SomeClass {
-     *     private Person john; // FullName.class will be embedded into Person
-     *     private Person erik; // FirstName.class and LastName.class will be embedded into Person
-     * }
-     * }
-     * </pre>
-     * What this does can be though of as the field {@code john} extending {@code Person extends FullName}
-     * and the field {@code erik} having type {@code Person extends FirstName, LastName}
-     * <p>
-     * Embeddings can also be combined with renaming to handle generics. <br/>
-     * <b>Example</b><br/>
-     * <pre>
-     * {@code
-     * rename(Identifier.newInstance(List.class, "results"), Identifier.newInstance(Person.class, "results"))
-     * embed(Identifier.newInstance(Person.class))
-     *
-     * public class TheClass {
-     *     private List<Person> results; // Person.class will be embedded
-     * }
-     * }
-     * </pre>
-     * Then what happens is the following. <br/> <br/>
-     * <b>Step 1 - renaming</b> <br/>
-     * <pre>
-     * {@code
-     * public class TheClass {
-     *     private Person results;
-     * }
-     * }
-     * </pre>
-     * <b>Step 2 - embedding</b> <br/>
-     * <pre>
-     * {@code
-     * public class TheClass {
-     *     private String ssn;
-     *     private int age;
-     * }
-     * }
-     * </pre>
-     *
-     * @param type   the type to embed
-     * @param toNode the destination node
-     * @return this {@link ClassToStringGenerator} instance
-     * @throws NullPointerException if any argument is null
-     */
-    public ClassToStringGenerator addExternalEmbedding(final Class<?> type, final Identifier toNode) {
-        Objects.requireNonNull(type);
-        Objects.requireNonNull(toNode);
-
-        externalEmbeddings.computeIfAbsent(toNode, ignored -> new HashSet<>())
-                .add(Identifier.newInstance(type));
-
-        return this;
-    }
-
-    /**
      * Embeds a node into the parent node when encountered. It will inject all leaf/nodes into that node. <br/>
-     * If you want to embed a node into a node that does not contain this node,
-     * then use {@link ClassToStringGenerator#addExternalEmbedding(Class, Identifier)} instead. <br/>
      *
      * @param type  the class containing the field
      * @param field the field to embed
@@ -433,20 +344,6 @@ public final class ClassToStringGenerator {
         return typeNodes.contains(identifier.stripName());
     }
 
-    private Set<Identifier> getExternalEmbeddings(final Identifier node) {
-        final Set<Identifier> specificEmbeddings = externalEmbeddings.get(node);
-        if (specificEmbeddings != null) {
-            return specificEmbeddings;
-        }
-
-        final Set<Identifier> generalEmbeddings = externalEmbeddings.get(node.stripName());
-        if (generalEmbeddings != null) {
-            return generalEmbeddings;
-        }
-
-        return Set.of();
-    }
-
     private List<CtsField> getFields(final Identifier originalNode, final Identifier node) {
         if (originalNode.matches(node)) {
             throw new IllegalStateException("illegal loop detected");
@@ -473,13 +370,6 @@ public final class ClassToStringGenerator {
                 final CtsField field = CtsField.newLeaf(identifier, modifiers);
                 fields.add(field);
             }
-        }
-
-        // Checks for any remote embeddings into this node.
-        final Set<Identifier> currentNodeExternalEmbeddings = getExternalEmbeddings(currentNode);
-        for (final Identifier identifier : currentNodeExternalEmbeddings) {
-            final List<CtsField> embeddedFields = getFields(originalNode, identifier);
-            fields.addAll(embeddedFields);
         }
 
         return fields;
