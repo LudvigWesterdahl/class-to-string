@@ -46,10 +46,10 @@ public final class EmbedNodeWithExternalEmbeddings implements CtsTestCaseGroup {
             final Identifier external1 = Identifier.newInstance(External0.External1.class, "external");
 
             return ClassToStringGenerator.from(Level0.class)
-                    .addNode(level1)
-                    .addNode(external1)
-                    .embed(level1)
-                    .embed(External0.class, level1)
+                    .addNode(null, level1)
+                    .addNode(null, external1)
+                    .addEmbedding(Level0.class, level1)
+                    .addExternalEmbedding(External0.class, level1)
                     .addObserver(newDefaultFlatGenerationStrategy());
         }
 
@@ -87,11 +87,11 @@ public final class EmbedNodeWithExternalEmbeddings implements CtsTestCaseGroup {
             final Identifier external1 = Identifier.newInstance(External0.External1.class, "external");
 
             return ClassToStringGenerator.from(Level0.class)
-                    .addNode(level1)
-                    .addNode(external1)
-                    .embed(level1)
-                    .embed(External0.class, level1)
-                    .embed(external1)
+                    .addNode(Level0.class, level1)
+                    .addNode(External0.class, external1)
+                    .addEmbedding(Level0.class, level1)
+                    .addExternalEmbedding(External0.class, level1)
+                    .addEmbedding(External0.class, external1)
                     .addObserver(newDefaultFlatGenerationStrategy());
         }
 

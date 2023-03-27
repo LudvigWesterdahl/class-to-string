@@ -66,7 +66,7 @@ public final class FixEmbedAnnotationCycle implements CtsTestCaseGroup {
         public ClassToStringGenerator generator() {
             return ClassToStringGenerator.from(OneLevel.class)
                     .addBlocker(LoopBlocker.loop(Identifier.newInstance(OneLevel.class), 2))
-                    .removeEmbeddings(Identifier.newInstance(OneLevel.class, "oneLevel"))
+                    .removeEmbedding(OneLevel.class, Identifier.newInstance(OneLevel.class, "oneLevel"))
                     .addObserver(newDefaultFlatGenerationStrategy());
         }
 
@@ -155,7 +155,8 @@ public final class FixEmbedAnnotationCycle implements CtsTestCaseGroup {
             // Removes the embedding on the second level.
             return ClassToStringGenerator.from(ThreeLevel.class)
                     .addBlocker(LoopBlocker.loop(Identifier.newInstance(ThreeLevel.First.Second.class), 2))
-                    .removeEmbeddings(Identifier.newInstance(ThreeLevel.First.Second.class, "second"))
+                    .removeEmbedding(ThreeLevel.First.class,
+                            Identifier.newInstance(ThreeLevel.First.Second.class, "second"))
                     .addObserver(newDefaultFlatGenerationStrategy());
         }
 

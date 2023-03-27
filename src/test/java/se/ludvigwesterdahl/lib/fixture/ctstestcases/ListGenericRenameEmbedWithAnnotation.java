@@ -92,8 +92,8 @@ public final class ListGenericRenameEmbedWithAnnotation implements CtsTestCaseGr
         @Override
         public ClassToStringGenerator generator() {
             return ClassToStringGenerator.from(Root.class)
-                    .embed(Identifier.newInstance(Root.First.FirstResult.class, "firstResultsRenamed"))
-                    .embed(Identifier.newInstance(Root.Second.SecondResult.class, "secondResultsRenamed"))
+                    .addEmbedding(null, Identifier.newInstance(Root.First.FirstResult.class, "firstResultsRenamed"))
+                    .addEmbedding(null, Identifier.newInstance(Root.Second.SecondResult.class, "secondResultsRenamed"))
                     .addObserver(newDefaultFlatGenerationStrategy());
         }
 
@@ -130,8 +130,8 @@ public final class ListGenericRenameEmbedWithAnnotation implements CtsTestCaseGr
         @Override
         public ClassToStringGenerator generator() {
             return ClassToStringGenerator.from(Root.class)
-                    .removeNode(Identifier.newInstance(Root.First.class, "first"))
-                    .removeNode(Identifier.newInstance(Root.Second.class, "second"))
+                    .removeNode(Root.class, Identifier.newInstance(Root.First.class, "first"))
+                    .removeNode(Root.class, Identifier.newInstance(Root.Second.class, "second"))
                     .addObserver(newDefaultFlatGenerationStrategy());
         }
 

@@ -101,7 +101,7 @@ final class ClassToStringGeneratorTest {
     @Test
     void Should_ThrowException_When_CircularEmbeddingDetected() {
         final ClassToStringGenerator generator = ClassToStringGenerator.from(Circular.class)
-                .embed(Identifier.newInstance(Circular.class));
+                .addEmbedding(Circular.class, Identifier.newInstance(Circular.class));
 
         assertThatCode(generator::iterate)
                 .isExactlyInstanceOf(IllegalStateException.class)
@@ -129,7 +129,7 @@ final class ClassToStringGeneratorTest {
                                               final Identifier to) {
         final ClassToStringGenerator generator = ClassToStringGenerator.from(Object.class);
 
-        assertThatCode(() -> generator.rename(from, to))
+        assertThatCode(() -> generator.addName(from, to))
                 .isExactlyInstanceOf(NullPointerException.class);
     }
 
@@ -139,7 +139,7 @@ final class ClassToStringGeneratorTest {
         final Identifier from = Identifier.newInstance(String.class);
         final Identifier to = Identifier.newInstance(Object.class);
 
-        assertThatCode(() -> generator.rename(null, from, to))
+        assertThatCode(() -> generator.addName(null, from, to))
                 .isExactlyInstanceOf(IllegalArgumentException.class)
                 .hasMessage("to is missing a name");
     }

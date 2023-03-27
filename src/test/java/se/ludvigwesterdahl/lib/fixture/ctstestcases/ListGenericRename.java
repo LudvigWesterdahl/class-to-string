@@ -46,14 +46,18 @@ public final class ListGenericRename implements CtsTestCaseGroup {
         @Override
         public ClassToStringGenerator generator() {
             // Because this specifies without a node, then both will get the same rename.
-            return ClassToStringGenerator.from(Root.class)
-                    .addNode(Identifier.newInstance(Root.First.class))
-                    .addNode(Identifier.newInstance(Root.First.FirstResult.class))
-                    .addNode(Identifier.newInstance(Root.Second.class))
-                    .addNode(Identifier.newInstance(Root.Second.SecondResult.class))
-                    .rename(Identifier.newInstance(List.class, "results"),
+            final ClassToStringGenerator generator = ClassToStringGenerator.from(Root.class)
+                    .addNode(Root.class, Identifier.newInstance(Root.First.class))
+                    .addNode(Root.class, Identifier.newInstance(Root.Second.class))
+                    .addName(Identifier.newInstance(List.class, "results"),
                             Identifier.newInstance(Root.First.FirstResult.class, "firstResultsRenamed"))
                     .addObserver(newDefaultFlatGenerationStrategy());
+
+            // Adding that node as a general node so that the renamed node will also be a node
+            // and traversed down.
+            generator.addNode(null, Identifier.newInstance(Root.First.FirstResult.class));
+
+            return generator;
         }
 
         @Override
@@ -96,14 +100,14 @@ public final class ListGenericRename implements CtsTestCaseGroup {
         public ClassToStringGenerator generator() {
             // This specifies both as a specific rename and will therefore get different rename.
             return ClassToStringGenerator.from(Root.class)
-                    .addNode(Identifier.newInstance(Root.First.class))
-                    .addNode(Identifier.newInstance(Root.First.FirstResult.class))
-                    .addNode(Identifier.newInstance(Root.Second.class))
-                    .addNode(Identifier.newInstance(Root.Second.SecondResult.class))
-                    .rename(Root.First.class,
+                    .addNode(Root.class, Identifier.newInstance(Root.First.class))
+                    .addNode(Root.First.class, Identifier.newInstance(Root.First.FirstResult.class))
+                    .addNode(Root.class, Identifier.newInstance(Root.Second.class))
+                    .addNode(Root.Second.class, Identifier.newInstance(Root.Second.SecondResult.class))
+                    .addName(Root.First.class,
                             Identifier.newInstance(List.class, "results"),
                             Identifier.newInstance(Root.First.FirstResult.class, "firstResultsRenamed"))
-                    .rename(Root.Second.class,
+                    .addName(Root.Second.class,
                             Identifier.newInstance(List.class, "results"),
                             Identifier.newInstance(Root.Second.SecondResult.class, "secondResultsRenamed"))
                     .addObserver(newDefaultFlatGenerationStrategy());
@@ -156,7 +160,7 @@ public final class ListGenericRename implements CtsTestCaseGroup {
         @Override
         public ClassToStringGenerator generator() {
             return listSpecificRename.generator()
-                    .rename(Identifier.newInstance(List.class, "results"),
+                    .addName(Identifier.newInstance(List.class, "results"),
                             Identifier.newInstance(Root.First.FirstResult.class, "firstResultsRenamed"));
         }
 
@@ -182,8 +186,8 @@ public final class ListGenericRename implements CtsTestCaseGroup {
         @Override
         public ClassToStringGenerator generator() {
             return listSpecificRename.generator()
-                    .removeRename(Root.First.class, Identifier.newInstance(List.class, "results"))
-                    .rename(Identifier.newInstance(List.class, "results"),
+                    .removeName(Root.First.class, Identifier.newInstance(List.class, "results"))
+                    .addName(Identifier.newInstance(List.class, "results"),
                             Identifier.newInstance(Root.First.FirstResult.class, "firstResultsRenamed"));
         }
 

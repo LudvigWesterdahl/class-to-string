@@ -96,11 +96,12 @@ public final class RemoveRenameAnnotation implements CtsTestCaseGroup {
         @Override
         public ClassToStringGenerator generator() {
             return ClassToStringGenerator.from(Root.class)
-                    .removeRename(Root.class, Identifier.newInstance(Root.Second.class, "second"))
-                    .removeRename(Root.class, Identifier.newInstance(Root.First.class, "first"))
-                    .removeRename(Root.First.class, Identifier.newInstance(String.class, "string1"))
-                    .removeRename(Root.Second.class, Identifier.newInstance(String.class, "string2"))
-                    .removeNode(Identifier.newInstance(Root.Third.class, "third"))
+                    .removeName(Root.class, Identifier.newInstance(Root.First.class, "first"))
+                    .removeName(Root.class, Identifier.newInstance(Root.Second.class, "second"))
+                    .removeName(Root.First.class, Identifier.newInstance(String.class, "string1"))
+                    .removeName(Root.Second.class, Identifier.newInstance(String.class, "string2"))
+                    .removeName(Root.class, Identifier.newInstance(Root.Third.class, "third"))
+                    .removeNode(Root.class, Identifier.newInstance(Root.Third.class, "third"))
                     .addObserver(newDefaultFlatGenerationStrategy());
         }
 
@@ -109,7 +110,7 @@ public final class RemoveRenameAnnotation implements CtsTestCaseGroup {
             final CtsFieldChain root = CtsFieldChain.newRootInstance(Root.class);
             final CtsFieldChain node1 = appendPrivateNode(root, Root.First.class, "first");
             final CtsFieldChain node2 = appendPrivateNode(root, Root.Second.class, "second");
-            final CtsFieldChain leaf1 = appendPrivateLeaf(root, String.class, "third");
+            final CtsFieldChain leaf1 = appendPrivateLeaf(root, Root.Third.class, "third");
             final CtsFieldChain leaf2 = appendPrivateLeaf(node1, String.class, "string1");
             final CtsFieldChain leaf3 = appendPrivateLeaf(node2, String.class, "string2");
 

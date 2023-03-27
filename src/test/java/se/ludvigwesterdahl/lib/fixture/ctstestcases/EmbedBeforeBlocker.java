@@ -47,10 +47,10 @@ public final class EmbedBeforeBlocker implements CtsTestCaseGroup {
         @Override
         public ClassToStringGenerator generator() {
             return ClassToStringGenerator.from(Level0.class)
-                    .addNode(Identifier.newInstance(Level0.Level1.class))
-                    .addNode(Identifier.newInstance(Level0.Level1.Level2.class))
-                    .embed(Identifier.newInstance(Level0.Level1.class))
-                    .embed(Identifier.newInstance(Level0.Level1.Level2.class))
+                    .addNode(Level0.class, Identifier.newInstance(Level0.Level1.class))
+                    .addNode(Level0.Level1.class, Identifier.newInstance(Level0.Level1.Level2.class))
+                    .addEmbedding(Level0.class, Identifier.newInstance(Level0.Level1.class))
+                    .addEmbedding(Level0.Level1.class, Identifier.newInstance(Level0.Level1.Level2.class))
                     .addBlocker(BlockerFixture.blockAllNodesExceptRoot())
                     .addObserver(newDefaultFlatGenerationStrategy());
         }

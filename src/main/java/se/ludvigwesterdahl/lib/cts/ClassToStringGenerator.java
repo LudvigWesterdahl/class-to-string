@@ -18,17 +18,17 @@ import java.util.stream.Collectors;
 public final class ClassToStringGenerator {
 
     private final Class<?> rootNode;
-    private final Set<Identifier> nodes;
+    private final Map<Class<?>, Set<Identifier>> nodes;
     private final Map<Class<?>, Map<Identifier, Identifier>> renaming;
-    private final Set<Identifier> embeddings;
+    private final Map<Class<?>, Set<Identifier>> embeddings;
     private final Map<Identifier, Set<Identifier>> externalEmbeddings;
     private final Set<Blocker> blockers;
     private final Set<Observer> observers;
 
     private ClassToStringGenerator(final Class<?> rootNode,
-                                   final Set<Identifier> nodes,
+                                   final Map<Class<?>, Set<Identifier>> nodes,
                                    final Map<Class<?>, Map<Identifier, Identifier>> renaming,
-                                   final Set<Identifier> embeddings,
+                                   final Map<Class<?>, Set<Identifier>> embeddings,
                                    final Map<Identifier, Set<Identifier>> externalEmbeddings,
                                    final Set<Blocker> blockers,
                                    final Set<Observer> observers) {
@@ -42,10 +42,11 @@ public final class ClassToStringGenerator {
     }
 
     public static ClassToStringGenerator from(final Class<?> rootNode) {
-        final Set<Identifier> nodes = new HashSet<>();
-        nodes.add(Identifier.newInstance(rootNode));
+        final Map<Class<?>, Set<Identifier>> nodes = new HashMap<>();
+        nodes.computeIfAbsent(null, ignored -> new HashSet<>())
+                .add(Identifier.newInstance(rootNode));
         final Map<Class<?>, Map<Identifier, Identifier>> renaming = new HashMap<>();
-        final Set<Identifier> embeddings = new HashSet<>();
+        final Map<Class<?>, Set<Identifier>> embeddings = new HashMap<>();
 
         final Set<Field> visited = new HashSet<>();
         final Deque<Field> fields = new ArrayDeque<>(Arrays.asList(rootNode.getDeclaredFields()));
@@ -75,15 +76,16 @@ public final class ClassToStringGenerator {
 
                 renaming.computeIfAbsent(field.getDeclaringClass(), ignored -> new HashMap<>())
                         .put(identifier, renamed);
-                identifier = renamed;
             }
 
             final CtsNode ctsNode = field.getAnnotation(CtsNode.class);
             if (ctsNode != null) {
                 fields.addAll(Arrays.asList(field.getType().getDeclaredFields()));
-                nodes.add(identifier);
+                nodes.computeIfAbsent(field.getDeclaringClass(), ignored -> new HashSet<>())
+                        .add(identifier);
                 if (ctsNode.embed()) {
-                    embeddings.add(identifier);
+                    embeddings.computeIfAbsent(field.getDeclaringClass(), ignored -> new HashSet<>())
+                            .add(identifier);
                 }
             }
         }
@@ -105,14 +107,14 @@ public final class ClassToStringGenerator {
      * If rename has been provided with a nodeType and one with {@code null}, then the most specific is used.
      *
      * @param nodeType the type of the node,
-     *                 if {@code null} then it is the same as {@link ClassToStringGenerator#rename(Identifier, Identifier)}
+     *                 if {@code null} then it is the same as {@link ClassToStringGenerator#addName(Identifier, Identifier)}
      * @param from     the real identifier
      * @param to       the new identifier
      * @return this {@link ClassToStringGenerator} instance
      * @throws NullPointerException     if {@code from} or {@code to} is {@code null}
      * @throws IllegalArgumentException if {@code to} does not have a name
      */
-    public ClassToStringGenerator rename(final Class<?> nodeType, final Identifier from, final Identifier to) {
+    public ClassToStringGenerator addName(final Class<?> nodeType, final Identifier from, final Identifier to) {
         Objects.requireNonNull(from);
         Objects.requireNonNull(to);
 
@@ -131,7 +133,7 @@ public final class ClassToStringGenerator {
      * However, if multiple {@code from} {@link Identifier} has been provided where one includes just the type,
      * and others include a name. Then the most specific one will be preferred. <br/>
      * Note that this method renames all node or leaf found in any node. If a specific one is required,
-     * then use {@link ClassToStringGenerator#rename(Class, Identifier, Identifier)} instead.
+     * then use {@link ClassToStringGenerator#addName(Class, Identifier, Identifier)} instead.
      *
      * @param from the real identifier
      * @param to   the new identifier
@@ -139,8 +141,8 @@ public final class ClassToStringGenerator {
      * @throws NullPointerException     if any argument is null
      * @throws IllegalArgumentException if {@code to} does not have a name
      */
-    public ClassToStringGenerator rename(final Identifier from, final Identifier to) {
-        return rename(null, from, to);
+    public ClassToStringGenerator addName(final Identifier from, final Identifier to) {
+        return addName(null, from, to);
     }
 
     /**
@@ -151,7 +153,7 @@ public final class ClassToStringGenerator {
      * @return this {@link ClassToStringGenerator} instance
      * @throws NullPointerException if {@code from == null}
      */
-    public ClassToStringGenerator removeRename(final Class<?> nodeType, final Identifier from) {
+    public ClassToStringGenerator removeName(final Class<?> nodeType, final Identifier from) {
         Objects.requireNonNull(from);
 
         final Map<Identifier, Identifier> rename = renaming.get(nodeType);
@@ -170,15 +172,15 @@ public final class ClassToStringGenerator {
      * @return this {@link ClassToStringGenerator} instance
      * @throws NullPointerException if {@code from == null}
      */
-    public ClassToStringGenerator removeRename(final Identifier from) {
-        return removeRename(null, from);
+    public ClassToStringGenerator removeName(final Identifier from) {
+        return removeName(null, from);
     }
 
     /**
      * Embeds a node into another node. This can be used if you want to inject some fields or nodes into an
      * existing structure without modifying it. <br/>
      * If the field you want to embed is a field in the same class that it should be embedded into, use
-     * the {@link ClassToStringGenerator#embed(Identifier)} instead. <br/>
+     * the {@link ClassToStringGenerator#addEmbedding(Class, Identifier)} instead. <br/>
      * Multiple calls will override previous calls, however, if multiple {@code from} {@link Identifier}
      * has been provided as {@code toNode} where one includes just the type, and others include a name. Then
      * the most specific one will be preferred. <br/>
@@ -247,7 +249,7 @@ public final class ClassToStringGenerator {
      * @return this {@link ClassToStringGenerator} instance
      * @throws NullPointerException if any argument is null
      */
-    public ClassToStringGenerator embed(final Class<?> type, final Identifier toNode) {
+    public ClassToStringGenerator addExternalEmbedding(final Class<?> type, final Identifier toNode) {
         Objects.requireNonNull(type);
         Objects.requireNonNull(toNode);
 
@@ -260,27 +262,37 @@ public final class ClassToStringGenerator {
     /**
      * Embeds a node into the parent node when encountered. It will inject all leaf/nodes into that node. <br/>
      * If you want to embed a node into a node that does not contain this node,
-     * then use {@link ClassToStringGenerator#embed(Class, Identifier)} instead. <br/>
+     * then use {@link ClassToStringGenerator#addExternalEmbedding(Class, Identifier)} instead. <br/>
      *
+     * @param type  the class containing the field
      * @param field the field to embed
      * @return this {@link ClassToStringGenerator} instance
      * @throws NullPointerException if {@code field == null}
      */
-    public ClassToStringGenerator embed(final Identifier field) {
+    public ClassToStringGenerator addEmbedding(final Class<?> type, final Identifier field) {
         Objects.requireNonNull(field);
-        embeddings.add(field);
+        embeddings.computeIfAbsent(type, ignored -> new HashSet<>())
+                .add(field);
         return this;
     }
 
     /**
      * Removes all embeddings associated with the node.
      *
+     * @param type the class containing the field
      * @param node the node to clear all embeddings for
      * @return this {@link ClassToStringGenerator} instance
      * @throws NullPointerException if {@code node == null}
      */
-    public ClassToStringGenerator removeEmbeddings(final Identifier node) {
-        embeddings.remove(node);
+    public ClassToStringGenerator removeEmbedding(final Class<?> type, final Identifier node) {
+        Objects.requireNonNull(type);
+        Objects.requireNonNull(node);
+
+        final Set<Identifier> typeEmbeddings = embeddings.get(type);
+        if (typeEmbeddings != null) {
+            typeEmbeddings.remove(node);
+        }
+
         return this;
     }
 
@@ -288,14 +300,16 @@ public final class ClassToStringGenerator {
      * Specifies that the field should be considered a node when encountered. It will traverse
      * into that structure.
      *
+     * @param type the class containing the node field; if null is always a node
      * @param node the node
      * @return this {@link ClassToStringGenerator} instance
      * @throws NullPointerException if {@code node == null}
      */
-    public ClassToStringGenerator addNode(final Identifier node) {
+    public ClassToStringGenerator addNode(final Class<?> type, final Identifier node) {
         Objects.requireNonNull(node);
 
-        nodes.add(node);
+        nodes.computeIfAbsent(type, ignored -> new HashSet<>())
+                .add(node);
 
         return this;
     }
@@ -303,14 +317,18 @@ public final class ClassToStringGenerator {
     /**
      * Removes a node. It will be considered a leaf when encountered.
      *
+     * @param type the class containing the node field; can be null
      * @param node the node to remove
      * @return this {@link ClassToStringGenerator} instance
      * @throws NullPointerException if {@code node == null}
      */
-    public ClassToStringGenerator removeNode(final Identifier node) {
+    public ClassToStringGenerator removeNode(final Class<?> type, final Identifier node) {
         Objects.requireNonNull(node);
 
-        nodes.remove(node);
+        final Set<Identifier> typeNodes = nodes.get(type);
+        if (typeNodes != null) {
+            typeNodes.remove(node);
+        }
 
         return this;
     }
@@ -378,19 +396,41 @@ public final class ClassToStringGenerator {
     }
 
     private boolean isEmbedded(final Identifier identifier, final Field rawField) {
-        if (embeddings.contains(identifier)) {
+        final Set<Identifier> generalEmbeddings = embeddings.get(null);
+        if (generalEmbeddings != null
+                && (generalEmbeddings.contains(identifier) || generalEmbeddings.contains(identifier.stripName()))) {
             return true;
         }
 
-        return embeddings.contains(identifier.stripName());
+        final Set<Identifier> typeEmbeddings = embeddings.get(rawField.getDeclaringClass());
+        if (typeEmbeddings == null) {
+            return false;
+        }
+
+        if (typeEmbeddings.contains(identifier)) {
+            return true;
+        }
+
+        return typeEmbeddings.contains(identifier.stripName());
     }
 
     private boolean isNode(final Identifier identifier, final Field rawField) {
-        if (nodes.contains(identifier)) {
+        final Set<Identifier> generalNodes = nodes.get(null);
+        if (generalNodes != null
+                && (generalNodes.contains(identifier) || generalNodes.contains(identifier.stripName()))) {
             return true;
         }
 
-        return nodes.contains(identifier.stripName());
+        final Set<Identifier> typeNodes = nodes.get(rawField.getDeclaringClass());
+        if (typeNodes == null) {
+            return false;
+        }
+
+        if (typeNodes.contains(identifier)) {
+            return true;
+        }
+
+        return typeNodes.contains(identifier.stripName());
     }
 
     private Set<Identifier> getExternalEmbeddings(final Identifier node) {
@@ -419,7 +459,7 @@ public final class ClassToStringGenerator {
         final List<CtsField> fields = new ArrayList<>();
         for (final Field rawField : currentNode.getType().getDeclaredFields()) {
             final int modifiers = rawField.getModifiers();
-            final Identifier identifier = getIdentifier(currentNode, rawField);
+            final Identifier identifier = Identifier.newInstance(rawField.getType(), rawField.getName());
 
             if (isNode(identifier, rawField)) {
                 if (isEmbedded(identifier, rawField)) {

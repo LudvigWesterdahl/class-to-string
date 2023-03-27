@@ -37,7 +37,7 @@ public final class SimpleStructureWithCode implements CtsTestCaseGroup {
         @Override
         public ClassToStringGenerator generator() {
             return ClassToStringGenerator.from(Simple.class)
-                    .addNode(Identifier.newInstance(Simple.Inner.class))
+                    .addNode(Simple.class, Identifier.newInstance(Simple.Inner.class))
                     .addObserver(newDefaultFlatGenerationStrategy());
         }
 
@@ -73,9 +73,9 @@ public final class SimpleStructureWithCode implements CtsTestCaseGroup {
             final Class<?> type = Simple.Inner.class;
 
             return ClassToStringGenerator.from(Simple.class)
-                    .rename(Identifier.newInstance(type, "inner"),
+                    .addName(Identifier.newInstance(type, "inner"),
                             Identifier.newInstance(type, "newInner"))
-                    .addNode(Identifier.newInstance(type))
+                    .addNode(Simple.class, Identifier.newInstance(type))
                     .addObserver(newDefaultFlatGenerationStrategy());
         }
 
@@ -109,8 +109,8 @@ public final class SimpleStructureWithCode implements CtsTestCaseGroup {
         @Override
         public ClassToStringGenerator generator() {
             return ClassToStringGenerator.from(Simple.class)
-                    .addNode(Identifier.newInstance(Simple.Inner.class))
-                    .embed(Identifier.newInstance(Simple.Inner.class))
+                    .addNode(Simple.class, Identifier.newInstance(Simple.Inner.class))
+                    .addEmbedding(Simple.class, Identifier.newInstance(Simple.Inner.class))
                     .addObserver(newDefaultFlatGenerationStrategy());
         }
 
@@ -145,12 +145,12 @@ public final class SimpleStructureWithCode implements CtsTestCaseGroup {
         @Override
         public ClassToStringGenerator generator() {
             final ClassToStringGenerator generator = ClassToStringGenerator.from(Simple.class)
-                    .addNode(Identifier.newInstance(Simple.Inner.class))
-                    .rename(Identifier.newInstance(Simple.Inner.class, "inner"),
+                    .addNode(Simple.class, Identifier.newInstance(Simple.Inner.class))
+                    .addName(Identifier.newInstance(Simple.Inner.class, "inner"),
                             Identifier.newInstance(Simple.Inner.class, "date"));
 
             // See javadoc for explanation.
-            generator.embed(Identifier.newInstance(Simple.Inner.class, "date"));
+            generator.addEmbedding(Simple.class, Identifier.newInstance(Simple.Inner.class, "date"));
 
             return generator.addObserver(newDefaultFlatGenerationStrategy());
         }
@@ -187,13 +187,13 @@ public final class SimpleStructureWithCode implements CtsTestCaseGroup {
             //
             // Adds a loop blocker because this test had previously resulted in an infinite loop.
             final ClassToStringGenerator generator = ClassToStringGenerator.from(Simple.class)
-                    .rename(Identifier.newInstance(Simple.Inner.class, "inner"),
+                    .addName(Identifier.newInstance(Simple.Inner.class, "inner"),
                             Identifier.newInstance(LocalDate.class, "date"))
-                    .addNode(Identifier.newInstance(Simple.Inner.class))
+                    .addNode(Simple.class, Identifier.newInstance(Simple.Inner.class))
                     .addBlocker(LoopBlocker.loop(Identifier.newInstance(LocalDate.class), 3));
 
             // This embedding will not do anything.
-            generator.embed(Identifier.newInstance(Simple.Inner.class));
+            generator.addEmbedding(Simple.class, Identifier.newInstance(Simple.Inner.class));
 
             return generator.addObserver(newDefaultFlatGenerationStrategy());
         }
@@ -227,9 +227,9 @@ public final class SimpleStructureWithCode implements CtsTestCaseGroup {
         @Override
         public ClassToStringGenerator generator() {
             final ClassToStringGenerator generator = ClassToStringGenerator.from(Simple.class)
-                    .rename(Identifier.newInstance(Simple.Inner.class, "inner"),
+                    .addName(Identifier.newInstance(Simple.Inner.class, "inner"),
                             Identifier.newInstance(Simple.Inner.class, "renamed"))
-                    .embed(Identifier.newInstance(Simple.Inner.class, "renamed"));
+                    .addEmbedding(Simple.class, Identifier.newInstance(Simple.Inner.class, "renamed"));
 
             return generator.addObserver(newDefaultFlatGenerationStrategy());
         }
