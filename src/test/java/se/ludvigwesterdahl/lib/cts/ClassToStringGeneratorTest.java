@@ -23,7 +23,8 @@ final class ClassToStringGeneratorTest {
             new ListGenericRenameEmbedWithAnnotation(),
             new FixEmbedAnnotationCycle(),
             new RemoveRenameAnnotation(),
-            new AddRemoveNameWithCode()
+            new AddRemoveNameWithCode(),
+            new SimpleListSameErasure()
     );
 
     private static Stream<Arguments> toArguments(final Predicate<CtsTestCase> predicate) {

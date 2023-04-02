@@ -77,6 +77,7 @@ public final class AddRemoveNameWithCode implements CtsTestCaseGroup {
     }
 
     private static final class AddRemove implements CtsTestCase {
+
         private final CtsTestCase defaultTestCase = new Default();
 
         @Override
