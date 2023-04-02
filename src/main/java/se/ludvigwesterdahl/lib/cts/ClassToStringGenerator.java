@@ -8,12 +8,25 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 /**
- * TODO: explain this deeper
- * Renaming happens first.
- * Then embeddings. This means that an embedding can override a node.
- * Then checking if a field is a node.
- * Then blocking.
- * Then notifying.
+ * The following methods can be achieved using the annotations, {@link CtsNode} and {@link CtsName}.
+ * <ul>
+ *     <li>{@link ClassToStringGenerator#addName(Class, Identifier, Identifier)}</li>
+ *     <li>{@link ClassToStringGenerator#removeName(Class, Identifier)}</li>
+ *     <li>{@link ClassToStringGenerator#addEmbedding(Class, Identifier)}</li>
+ *     <li>{@link ClassToStringGenerator#removeEmbedding(Class, Identifier)}</li>
+ *     <li>{@link ClassToStringGenerator#addNode(Class, Identifier)}</li>
+ *     <li>{@link ClassToStringGenerator#removeNode(Class, Identifier)}</li>
+ * </ul>
+ * <br/>
+ * However, the following methods can be used to set the global name, irrespectively of the class
+ * which the fields have been specified in.
+ * <ul>
+ *     <li>{@link ClassToStringGenerator#addName(Identifier, Identifier)}</li>
+ *     <li>{@link ClassToStringGenerator#removeName(Identifier)}</li>
+ * </ul>
+ * <br/>
+ * Because of this, you need to call the first set of "remove" methods if you want to remove
+ * the effect of an annotation by code.
  */
 public final class ClassToStringGenerator {
 
