@@ -150,7 +150,7 @@ public final class SimpleStructureWithCode implements CtsTestCaseGroup {
                             Identifier.newInstance(Simple.Inner.class, "date"));
 
             // See javadoc for explanation.
-            generator.addEmbedding(Simple.class, Identifier.newInstance(Simple.Inner.class, "date"));
+            generator.addEmbedding(Simple.class, Identifier.newInstance(Simple.Inner.class, "inner"));
 
             return generator.addObserver(newDefaultFlatGenerationStrategy());
         }
@@ -181,19 +181,13 @@ public final class SimpleStructureWithCode implements CtsTestCaseGroup {
 
         @Override
         public ClassToStringGenerator generator() {
-            // The node that should have been added is LocalDate and not the Simple.Inner.
-            // Because the generator should check if it is a node after the actual rename happened.
-            // Therefore, the LocalDate which comes as from rename will be seen as a leaf.
-            //
-            // Adds a loop blocker because this test had previously resulted in an infinite loop.
             final ClassToStringGenerator generator = ClassToStringGenerator.from(Simple.class)
                     .addName(Identifier.newInstance(Simple.Inner.class, "inner"),
                             Identifier.newInstance(LocalDate.class, "date"))
-                    .addNode(Simple.class, Identifier.newInstance(Simple.Inner.class))
                     .addBlocker(LoopBlocker.loop(Identifier.newInstance(LocalDate.class), 3));
 
             // This embedding will not do anything.
-            generator.addEmbedding(Simple.class, Identifier.newInstance(Simple.Inner.class));
+            generator.addEmbedding(Simple.class, Identifier.newInstance(LocalDate.class));
 
             return generator.addObserver(newDefaultFlatGenerationStrategy());
         }

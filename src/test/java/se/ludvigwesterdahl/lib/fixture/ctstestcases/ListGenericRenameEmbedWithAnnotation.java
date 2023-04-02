@@ -91,9 +91,11 @@ public final class ListGenericRenameEmbedWithAnnotation implements CtsTestCaseGr
 
         @Override
         public ClassToStringGenerator generator() {
+            // Specifying the type to embed on the first one.
+            // But the second is using the "global" version.
             return ClassToStringGenerator.from(Root.class)
-                    .addEmbedding(null, Identifier.newInstance(Root.First.FirstResult.class, "firstResultsRenamed"))
-                    .addEmbedding(null, Identifier.newInstance(Root.Second.SecondResult.class, "secondResultsRenamed"))
+                    .addEmbedding(Root.First.class, Identifier.newInstance(List.class, "results"))
+                    .addEmbedding(null, Identifier.newInstance(List.class, "results"))
                     .addObserver(newDefaultFlatGenerationStrategy());
         }
 

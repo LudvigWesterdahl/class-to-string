@@ -49,6 +49,7 @@ public final class ListGenericRename implements CtsTestCaseGroup {
             final ClassToStringGenerator generator = ClassToStringGenerator.from(Root.class)
                     .addNode(Root.class, Identifier.newInstance(Root.First.class))
                     .addNode(Root.class, Identifier.newInstance(Root.Second.class))
+                    .addNode(null, Identifier.newInstance(List.class))
                     .addName(Identifier.newInstance(List.class, "results"),
                             Identifier.newInstance(Root.First.FirstResult.class, "firstResultsRenamed"))
                     .addObserver(newDefaultFlatGenerationStrategy());
@@ -101,9 +102,9 @@ public final class ListGenericRename implements CtsTestCaseGroup {
             // This specifies both as a specific rename and will therefore get different rename.
             return ClassToStringGenerator.from(Root.class)
                     .addNode(Root.class, Identifier.newInstance(Root.First.class))
-                    .addNode(Root.First.class, Identifier.newInstance(Root.First.FirstResult.class))
+                    .addNode(Root.First.class, Identifier.newInstance(List.class, "results"))
                     .addNode(Root.class, Identifier.newInstance(Root.Second.class))
-                    .addNode(Root.Second.class, Identifier.newInstance(Root.Second.SecondResult.class))
+                    .addNode(Root.Second.class, Identifier.newInstance(List.class, "results"))
                     .addName(Root.First.class,
                             Identifier.newInstance(List.class, "results"),
                             Identifier.newInstance(Root.First.FirstResult.class, "firstResultsRenamed"))

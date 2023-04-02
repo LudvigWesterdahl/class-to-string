@@ -19,20 +19,20 @@ public final class ClassToStringGenerator {
 
     private final Class<?> rootNode;
     private final Map<Class<?>, Set<Identifier>> nodes;
-    private final Map<Class<?>, Map<Identifier, Identifier>> renaming;
+    private final Map<Class<?>, Map<Identifier, Identifier>> names;
     private final Map<Class<?>, Set<Identifier>> embeddings;
     private final Set<Blocker> blockers;
     private final Set<Observer> observers;
 
     private ClassToStringGenerator(final Class<?> rootNode,
                                    final Map<Class<?>, Set<Identifier>> nodes,
-                                   final Map<Class<?>, Map<Identifier, Identifier>> renaming,
+                                   final Map<Class<?>, Map<Identifier, Identifier>> names,
                                    final Map<Class<?>, Set<Identifier>> embeddings,
                                    final Set<Blocker> blockers,
                                    final Set<Observer> observers) {
         this.rootNode = rootNode;
         this.nodes = nodes;
-        this.renaming = renaming;
+        this.names = names;
         this.embeddings = embeddings;
         this.blockers = blockers;
         this.observers = observers;
@@ -42,7 +42,7 @@ public final class ClassToStringGenerator {
         final Map<Class<?>, Set<Identifier>> nodes = new HashMap<>();
         nodes.computeIfAbsent(null, ignored -> new HashSet<>())
                 .add(Identifier.newInstance(rootNode));
-        final Map<Class<?>, Map<Identifier, Identifier>> renaming = new HashMap<>();
+        final Map<Class<?>, Map<Identifier, Identifier>> names = new HashMap<>();
         final Map<Class<?>, Set<Identifier>> embeddings = new HashMap<>();
 
         final Set<Field> visited = new HashSet<>();
@@ -55,7 +55,7 @@ public final class ClassToStringGenerator {
             visited.add(field);
 
             final CtsName ctsName = field.getAnnotation(CtsName.class);
-            Identifier identifier = Identifier.newInstance(field.getType(), field.getName());
+            final Identifier identifier = Identifier.newInstance(field.getType(), field.getName());
             if (ctsName != null && !ReflectionHelper.hasDefaultValues(CtsName.class, ctsName)) {
                 final Class<?> newType = ReflectionHelper.getAnnotationValue(
                         CtsName.class,
@@ -71,7 +71,7 @@ public final class ClassToStringGenerator {
                         identifier.getName().orElseThrow());
                 final Identifier renamed = Identifier.newInstance(newType, newName);
 
-                renaming.computeIfAbsent(field.getDeclaringClass(), ignored -> new HashMap<>())
+                names.computeIfAbsent(field.getDeclaringClass(), ignored -> new HashMap<>())
                         .put(identifier, renamed);
             }
 
@@ -90,7 +90,7 @@ public final class ClassToStringGenerator {
         return new ClassToStringGenerator(
                 rootNode,
                 nodes,
-                renaming,
+                names,
                 embeddings,
                 new HashSet<>(),
                 new HashSet<>());
@@ -118,7 +118,7 @@ public final class ClassToStringGenerator {
             throw new IllegalArgumentException("to is missing a name");
         }
 
-        renaming.computeIfAbsent(nodeType, ignored -> new HashMap<>())
+        names.computeIfAbsent(nodeType, ignored -> new HashMap<>())
                 .put(from, to);
 
         return this;
@@ -152,7 +152,7 @@ public final class ClassToStringGenerator {
     public ClassToStringGenerator removeName(final Class<?> nodeType, final Identifier from) {
         Objects.requireNonNull(from);
 
-        final Map<Identifier, Identifier> rename = renaming.get(nodeType);
+        final Map<Identifier, Identifier> rename = names.get(nodeType);
 
         if (rename != null) {
             rename.remove(from);
@@ -273,7 +273,8 @@ public final class ClassToStringGenerator {
     }
 
     private Identifier getRenamedIdentifier(final Identifier node, final Identifier identifier) {
-        final Identifier specificRename = Optional.ofNullable(renaming.get(node.getType()))
+        final Identifier specificRename = Optional.ofNullable(node)
+                .map(n -> names.get(n.getType()))
                 .map(r -> r.get(identifier))
                 .orElse(null);
 
@@ -281,19 +282,14 @@ public final class ClassToStringGenerator {
             return specificRename;
         }
 
-        return Optional.ofNullable(renaming.get(null))
+        return Optional.ofNullable(names.get(null))
                 .map(r -> r.get(identifier))
                 .orElse(null);
     }
 
-    private Identifier getIdentifier(final Identifier node, final Field rawField) {
-        final Class<?> type = rawField.getType();
-        final String name = rawField.getName();
-        final Identifier generalIdentifier = Identifier.newInstance(type);
-        final Identifier renamedGeneralIdentifier = getRenamedIdentifier(node, generalIdentifier);
-
-        final Identifier specificIdentifier = Identifier.newInstance(type, name);
-        final Identifier renamedSpecificIdentifier = getRenamedIdentifier(node, specificIdentifier);
+    private Identifier getIdentifier(final Identifier previousNode, final Identifier nodeOrLeaf) {
+        final Identifier renamedSpecificIdentifier = getRenamedIdentifier(previousNode, nodeOrLeaf);
+        final Identifier renamedGeneralIdentifier = getRenamedIdentifier(previousNode, nodeOrLeaf.stripName());
 
         if (renamedSpecificIdentifier != null) {
             return renamedSpecificIdentifier;
@@ -303,80 +299,91 @@ public final class ClassToStringGenerator {
             return renamedGeneralIdentifier;
         }
 
-        return specificIdentifier;
+        return nodeOrLeaf;
     }
 
-    private boolean isEmbedded(final Identifier identifier, final Field rawField) {
+    private boolean isEmbedded(final Identifier previousNode, final Identifier node) {
         final Set<Identifier> generalEmbeddings = embeddings.get(null);
         if (generalEmbeddings != null
-                && (generalEmbeddings.contains(identifier) || generalEmbeddings.contains(identifier.stripName()))) {
+                && (generalEmbeddings.contains(node) || generalEmbeddings.contains(node.stripName()))) {
             return true;
         }
 
-        final Set<Identifier> typeEmbeddings = embeddings.get(rawField.getDeclaringClass());
+        final Set<Identifier> typeEmbeddings = Optional.ofNullable(previousNode)
+                .map(p -> embeddings.get(p.getType()))
+                .orElse(null);
         if (typeEmbeddings == null) {
             return false;
         }
 
-        if (typeEmbeddings.contains(identifier)) {
+        if (typeEmbeddings.contains(node)) {
             return true;
         }
 
-        return typeEmbeddings.contains(identifier.stripName());
+        return typeEmbeddings.contains(node.stripName());
     }
 
-    private boolean isNode(final Identifier identifier, final Field rawField) {
+    private boolean isNode(final Identifier previousNode, final Identifier node) {
         final Set<Identifier> generalNodes = nodes.get(null);
         if (generalNodes != null
-                && (generalNodes.contains(identifier) || generalNodes.contains(identifier.stripName()))) {
+                && (generalNodes.contains(node) || generalNodes.contains(node.stripName()))) {
             return true;
         }
 
-        final Set<Identifier> typeNodes = nodes.get(rawField.getDeclaringClass());
+        final Set<Identifier> typeNodes = Optional.ofNullable(previousNode)
+                .map(p -> nodes.get(p.getType()))
+                .orElse(null);
         if (typeNodes == null) {
             return false;
         }
 
-        if (typeNodes.contains(identifier)) {
+        if (typeNodes.contains(node)) {
             return true;
         }
 
-        return typeNodes.contains(identifier.stripName());
+        return typeNodes.contains(node.stripName());
     }
 
-    private List<CtsField> getFields(final Identifier originalNode, final Identifier node) {
-        if (originalNode.matches(node)) {
-            throw new IllegalStateException("illegal loop detected");
-        }
-
-        final Identifier currentNode = node == null
-                ? originalNode
-                : node;
+    private List<CtsField> getFields(final Identifier previousNode, final Identifier node) {
+        final Set<Field> visited = new HashSet<>();
+        final Identifier renamedNode = getIdentifier(previousNode, node);
+        final ArrayDeque<Field> rawFields = new ArrayDeque<>(List.of(renamedNode.getType().getDeclaredFields()));
+        // Used to keep track of the container nodes for embedded fields.
+        final Map<Identifier, Identifier> fieldIdentifierToNode = new HashMap<>();
 
         final List<CtsField> fields = new ArrayList<>();
-        for (final Field rawField : currentNode.getType().getDeclaredFields()) {
-            final int modifiers = rawField.getModifiers();
-            final Identifier identifier = Identifier.newInstance(rawField.getType(), rawField.getName());
+        while (!rawFields.isEmpty()) {
+            final Field rawField = rawFields.removeFirst();
+            if (visited.contains(rawField)) {
+                // This happens when embeddings create an infinite loop.
+                throw new IllegalStateException("illegal loop detected");
+            }
+            visited.add(rawField);
 
-            if (isNode(identifier, rawField)) {
-                if (isEmbedded(identifier, rawField)) {
-                    final List<CtsField> embeddedFields = getFields(originalNode, identifier);
-                    fields.addAll(embeddedFields);
+            final Identifier fieldIdentifier = Identifier.newInstance(rawField.getType(), rawField.getName());
+            final Identifier parentNode = fieldIdentifierToNode.getOrDefault(fieldIdentifier, node);
+            final Identifier renamedFieldIdentifier = getIdentifier(parentNode, fieldIdentifier);
+
+            if (isNode(parentNode, fieldIdentifier)) {
+                if (isEmbedded(parentNode, fieldIdentifier)) {
+                    final Field[] embedRawFields = renamedFieldIdentifier.getType().getDeclaredFields();
+                    for (int i = embedRawFields.length - 1; i >= 0; i--) {
+                        final Field embedRawField = embedRawFields[i];
+                        rawFields.addFirst(embedRawField);
+                        final Identifier embedFieldIdentifier
+                                = Identifier.newInstance(embedRawField.getType(), embedRawField.getName());
+                        fieldIdentifierToNode.put(embedFieldIdentifier, renamedFieldIdentifier);
+                    }
                 } else {
-                    final CtsField field = CtsField.newNode(identifier, modifiers);
+                    final CtsField field = CtsField.newNode(renamedFieldIdentifier, rawField.getModifiers());
                     fields.add(field);
                 }
             } else {
-                final CtsField field = CtsField.newLeaf(identifier, modifiers);
+                final CtsField field = CtsField.newLeaf(renamedFieldIdentifier, rawField.getModifiers());
                 fields.add(field);
             }
         }
-
         return fields;
-    }
-
-    private List<CtsField> getFields(final Identifier node) {
-        return getFields(node, null);
     }
 
     private boolean isBlocked(final CtsFieldChain fieldChain) {
@@ -427,8 +434,10 @@ public final class ClassToStringGenerator {
                 notifyEnterNode(current);
                 enteredNodes.add(current);
                 queue.addFirst(current);
-
-                final List<CtsField> fields = getFields(current.head().getIdentifier());
+                final Identifier previousNode = current.allFields().size() > 1
+                        ? current.allFields().get(current.allFields().size() - 2).getIdentifier()
+                        : null;
+                final List<CtsField> fields = getFields(previousNode, current.head().getIdentifier());
                 final List<CtsFieldChain> nextFieldChains = current.chainAll(fields);
                 for (int i = nextFieldChains.size() - 1; i >= 0; i--) {
                     queue.addFirst(nextFieldChains.get(i));

@@ -115,9 +115,9 @@ final class ClassToStringGeneratorTest {
 
     private static Stream<Arguments> Should_ThrowNpe_When_RenameGivenNull_Provider() {
         return Stream.of(
-            Arguments.of("missing to", Identifier.newInstance(String.class, "string"), null),
-            Arguments.of("missing from", null, Identifier.newInstance(String.class, "string")),
-            Arguments.of("missing both", null, null)
+                Arguments.of("missing to", Identifier.newInstance(String.class, "string"), null),
+                Arguments.of("missing from", null, Identifier.newInstance(String.class, "string")),
+                Arguments.of("missing both", null, null)
         );
     }
 
