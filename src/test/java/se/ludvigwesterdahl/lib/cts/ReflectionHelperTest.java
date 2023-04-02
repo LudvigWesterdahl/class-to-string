@@ -105,4 +105,18 @@ final class ReflectionHelperTest {
 
         assertThat(actual).isEqualTo(expected);
     }
+
+    @Test
+    void Should_ThrowException_When_GetAnnotationValueWithInvalidMethodName() throws Exception {
+        final Field field = ClassExample.class.getDeclaredField("firstField");
+        final AnnotationExample instance = field.getAnnotation(AnnotationExample.class);
+
+        assertThatCode(() -> ReflectionHelper.getAnnotationValue(
+                AnnotationExample.class,
+                instance,
+                String.class,
+                "name",
+                null))
+                .isExactlyInstanceOf(RuntimeException.class);
+    }
 }

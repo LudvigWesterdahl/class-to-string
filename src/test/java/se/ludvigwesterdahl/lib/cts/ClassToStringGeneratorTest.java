@@ -22,7 +22,8 @@ final class ClassToStringGeneratorTest {
             new ListGenericRename(),
             new ListGenericRenameEmbedWithAnnotation(),
             new FixEmbedAnnotationCycle(),
-            new RemoveRenameAnnotation()
+            new RemoveRenameAnnotation(),
+            new AddRemoveNameWithCode()
     );
 
     private static Stream<Arguments> toArguments(final Predicate<CtsTestCase> predicate) {
