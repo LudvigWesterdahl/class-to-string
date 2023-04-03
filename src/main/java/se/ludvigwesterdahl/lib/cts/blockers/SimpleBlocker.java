@@ -28,7 +28,7 @@ public final class SimpleBlocker extends AbstractBlocker {
      * Blocks a node with the given {@link Identifier} when encountered.
      *
      * @param parentNode the parent node; can be null meaning any parent node
-     * @param node the node to block
+     * @param node       the node to block
      * @return a {@link Blocker} instance
      */
     public static Blocker blockNode(final Identifier parentNode, final Identifier node) {
@@ -41,7 +41,7 @@ public final class SimpleBlocker extends AbstractBlocker {
      * Blocks a leaf with the given {@link Identifier} when encountered.
      *
      * @param parentNode the parent node; can be null meaning any parent node
-     * @param leaf the leaf to block
+     * @param leaf       the leaf to block
      * @return a {@link Blocker} instance
      */
     public static Blocker blockLeaf(final Identifier parentNode, final Identifier leaf) {
@@ -71,10 +71,24 @@ public final class SimpleBlocker extends AbstractBlocker {
             return false;
         }
 
+        final Identifier previousNode = fieldChain.isRoot()
+                ? null
+                : fieldChain.allFields().get(fieldChain.allFields().size() - 2).getIdentifier();
+
         if (blockNodes == null) {
-            return true;
+            if (parentNode == null) {
+                // Matches and parent node should not be considered.
+                return true;
+            }
+
+            return parentNode.matches(previousNode);
         }
 
-        return Objects.equals(blockNodes, field.isNode());
+        if (parentNode == null) {
+            return Objects.equals(blockNodes, field.isNode());
+        }
+
+        return parentNode.matches(previousNode)
+                && Objects.equals(blockNodes, field.isNode());
     }
 }

@@ -451,9 +451,9 @@ public final class ClassToStringGenerator {
                 notifyEnterNode(current);
                 enteredNodes.add(current);
                 queue.addFirst(current);
-                final Identifier previousNode = current.allFields().size() > 1
-                        ? current.allFields().get(current.allFields().size() - 2).getIdentifier()
-                        : null;
+                final Identifier previousNode = current.isRoot()
+                        ? null
+                        : current.allFields().get(current.allFields().size() - 2).getIdentifier();
                 final List<CtsField> fields = getFields(previousNode, current.head().getIdentifier());
                 final List<CtsFieldChain> nextFieldChains = current.chainAll(fields);
                 for (int i = nextFieldChains.size() - 1; i >= 0; i--) {

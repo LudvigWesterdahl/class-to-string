@@ -1,10 +1,8 @@
 package se.ludvigwesterdahl.lib.fixture.ctstestcases;
 
-import se.ludvigwesterdahl.lib.cts.ClassToStringGenerator;
-import se.ludvigwesterdahl.lib.cts.CtsFieldChain;
-import se.ludvigwesterdahl.lib.cts.CtsName;
-import se.ludvigwesterdahl.lib.cts.CtsNode;
+import se.ludvigwesterdahl.lib.cts.*;
 import se.ludvigwesterdahl.lib.cts.blockers.LeafBlocker;
+import se.ludvigwesterdahl.lib.cts.blockers.SimpleBlocker;
 import se.ludvigwesterdahl.lib.cts.strategy.FlatGenerationStrategy;
 
 import java.net.URI;
@@ -69,7 +67,15 @@ public final class TypicalSelectExpandQuery implements CtsTestCaseGroup {
 
         @Override
         public ClassToStringGenerator generator() {
+            // The fields "count" and "nextPage" should not be included in the query.
+            // They are additional responses in the hypothetical json response.
             return ClassToStringGenerator.from(Response.class)
+                    .addBlocker(SimpleBlocker.blockLeaf(
+                            Identifier.newInstance(Response.class),
+                            Identifier.newInstance(int.class, "count")))
+                    .addBlocker(SimpleBlocker.blockLeaf(
+                            Identifier.newInstance(Response.class),
+                            Identifier.newInstance(URI.class, "nextPage")))
                     .addObserver(newDefaultFlatGenerationStrategy());
         }
 
@@ -97,12 +103,6 @@ public final class TypicalSelectExpandQuery implements CtsTestCaseGroup {
             final CtsFieldChain leaf5 = appendPrivateLeaf(node2,
                     String.class,
                     "value");
-            final CtsFieldChain leaf6 = appendPrivateLeaf(root,
-                    int.class,
-                    "count");
-            final CtsFieldChain leaf7 = appendPrivateLeaf(root,
-                    URI.class,
-                    "nextPage");
 
             return List.of(
                     notification(ENTER_NODE, root),
@@ -115,8 +115,6 @@ public final class TypicalSelectExpandQuery implements CtsTestCaseGroup {
                     notification(CONSUME_LEAF, leaf4),
                     notification(CONSUME_LEAF, leaf5),
                     notification(LEAVE_NODE, node2),
-                    notification(CONSUME_LEAF, leaf6),
-                    notification(CONSUME_LEAF, leaf7),
                     notification(LEAVE_NODE, root)
             );
         }
@@ -128,9 +126,7 @@ public final class TypicalSelectExpandQuery implements CtsTestCaseGroup {
                     "personalInformation/firstName",
                     "personalInformation/lastName",
                     "contact/type",
-                    "contact/value",
-                    "count",
-                    "nextPage"
+                    "contact/value"
             );
         }
     }
@@ -141,7 +137,15 @@ public final class TypicalSelectExpandQuery implements CtsTestCaseGroup {
 
         @Override
         public ClassToStringGenerator generator() {
+            // The fields "count" and "nextPage" should not be included in the query.
+            // They are additional responses in the hypothetical json response.
             return ClassToStringGenerator.from(Response.class)
+                    .addBlocker(SimpleBlocker.blockLeaf(
+                            Identifier.newInstance(Response.class),
+                            Identifier.newInstance(int.class, "count")))
+                    .addBlocker(SimpleBlocker.blockLeaf(
+                            Identifier.newInstance(Response.class),
+                            Identifier.newInstance(URI.class, "nextPage")))
                     .addObserver(new FlatGenerationStrategy.Builder()
                             .withNodes(true)
                             .withLeaf(false)
@@ -198,7 +202,7 @@ public final class TypicalSelectExpandQuery implements CtsTestCaseGroup {
 
         @Override
         public String expectedGenerate() {
-           return expand.expectedGenerate();
+            return expand.expectedGenerate();
         }
     }
 

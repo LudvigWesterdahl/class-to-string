@@ -110,6 +110,9 @@ final class SimpleBlockerTest {
                 = SimpleBlocker.blockNode(Identifier.newInstance(Integer.class),
                 Identifier.newInstance(Object.class, "node"));
 
+        final Blocker rootBlocker
+                = SimpleBlocker.block(null, parentNode);
+
         return Stream.of(
                 Arguments.of("blocking leaf with leaf blocker", leafBlocker, leaf, true),
                 Arguments.of("blocking node with leaf blocker", leafBlocker, node, false),
@@ -158,7 +161,9 @@ final class SimpleBlockerTest {
                 Arguments.of("blocking node with blocker for node", blockerForNode, leaf, true),
 
                 Arguments.of("trying to block leaf bad parent", invalidParentLeafBlocker, leaf, false),
-                Arguments.of("trying to block node with bad parent", invalidParentNodeBlocker, node, false)
+                Arguments.of("trying to block node with bad parent", invalidParentNodeBlocker, node, false),
+
+                Arguments.of("blocking root", rootBlocker, root, true)
         );
     }
 
