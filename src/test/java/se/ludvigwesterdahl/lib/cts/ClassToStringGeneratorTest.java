@@ -24,7 +24,8 @@ final class ClassToStringGeneratorTest {
             new FixEmbedAnnotationCycle(),
             new RemoveRenameAnnotation(),
             new AddRemoveNameWithCode(),
-            new SimpleListSameErasure()
+            new SimpleListSameErasure(),
+            new TypicalSelectExpandQuery()
     );
 
     private static Stream<Arguments> toArguments(final Predicate<CtsTestCase> predicate) {

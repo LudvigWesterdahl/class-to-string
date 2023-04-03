@@ -12,10 +12,14 @@ import java.util.Objects;
  */
 public final class SimpleBlocker extends AbstractBlocker {
 
+    private final Identifier parentNode;
     private final Identifier leafOrNode;
     private final Boolean blockNodes;
 
-    private SimpleBlocker(final Identifier leafOrNode, final Boolean blockNodes) {
+    private SimpleBlocker(final Identifier parentNode,
+                          final Identifier leafOrNode,
+                          final Boolean blockNodes) {
+        this.parentNode = parentNode;
         this.leafOrNode = leafOrNode;
         this.blockNodes = blockNodes;
     }
@@ -23,37 +27,40 @@ public final class SimpleBlocker extends AbstractBlocker {
     /**
      * Blocks a node with the given {@link Identifier} when encountered.
      *
+     * @param parentNode the parent node; can be null meaning any parent node
      * @param node the node to block
      * @return a {@link Blocker} instance
      */
-    public static Blocker blockNode(final Identifier node) {
+    public static Blocker blockNode(final Identifier parentNode, final Identifier node) {
         Objects.requireNonNull(node);
 
-        return new SimpleBlocker(node, true);
+        return new SimpleBlocker(parentNode, node, true);
     }
 
     /**
      * Blocks a leaf with the given {@link Identifier} when encountered.
      *
+     * @param parentNode the parent node; can be null meaning any parent node
      * @param leaf the leaf to block
      * @return a {@link Blocker} instance
      */
-    public static Blocker blockLeaf(final Identifier leaf) {
+    public static Blocker blockLeaf(final Identifier parentNode, final Identifier leaf) {
         Objects.requireNonNull(leaf);
 
-        return new SimpleBlocker(leaf, false);
+        return new SimpleBlocker(parentNode, leaf, false);
     }
 
     /**
      * Blocks a leaf or node with the given {@link Identifier} when encountered.
      *
+     * @param parentNode the parent node; can be null meaning any parent node
      * @param leafOrNode the leaf or node to block
      * @return a {@link Blocker} instance
      */
-    public static Blocker block(final Identifier leafOrNode) {
+    public static Blocker block(final Identifier parentNode, final Identifier leafOrNode) {
         Objects.requireNonNull(leafOrNode);
 
-        return new SimpleBlocker(leafOrNode, null);
+        return new SimpleBlocker(parentNode, leafOrNode, null);
     }
 
     @Override

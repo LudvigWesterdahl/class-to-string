@@ -24,7 +24,8 @@ public final class LoopBlocker extends AbstractBlocker {
 
     /**
      * Blocks a given {@link Identifier} from being encountered more than {@code times}. <br/>
-     * Note that if {@code times == 0} then this is the same as {@link SimpleBlocker#block(Identifier)}.
+     * Note that if {@code times == 0} then this is the same as {@link SimpleBlocker#block(Identifier,Identifier)}
+     * with {@code null} as the parent node.
      *
      * @param blockingPoint the leaf or node that is blocked
      * @param times         the maximum number of times {@code blockingPoint} can be entered
@@ -39,7 +40,7 @@ public final class LoopBlocker extends AbstractBlocker {
         }
 
         if (times == 0) {
-            return SimpleBlocker.block(blockingPoint);
+            return SimpleBlocker.block(null, blockingPoint);
         }
 
         final LoopBlocker blocker = new LoopBlocker(blockingPoint, times);

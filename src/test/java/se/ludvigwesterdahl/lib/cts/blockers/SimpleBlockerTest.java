@@ -19,9 +19,9 @@ final class SimpleBlockerTest {
 
     private static Stream<Arguments> Should_DoNothing_When_EnterNode_Provider() {
         return Stream.of(
-                Arguments.of("block node", SimpleBlocker.blockNode(Identifier.newInstance(Object.class))),
-                Arguments.of("block leaf", SimpleBlocker.blockLeaf(Identifier.newInstance(Object.class))),
-                Arguments.of("block", SimpleBlocker.block(Identifier.newInstance(Object.class)))
+                Arguments.of("block node", SimpleBlocker.blockNode(null, Identifier.newInstance(Object.class))),
+                Arguments.of("block leaf", SimpleBlocker.blockLeaf(null, Identifier.newInstance(Object.class))),
+                Arguments.of("block", SimpleBlocker.block(null, Identifier.newInstance(Object.class)))
         );
     }
 
@@ -38,9 +38,9 @@ final class SimpleBlockerTest {
 
     private static Stream<Arguments> Should_DoNothing_When_ConsumeLeaf_Provider() {
         return Stream.of(
-                Arguments.of("block node", SimpleBlocker.blockNode(Identifier.newInstance(Object.class))),
-                Arguments.of("block leaf", SimpleBlocker.blockLeaf(Identifier.newInstance(Object.class))),
-                Arguments.of("block", SimpleBlocker.block(Identifier.newInstance(Object.class)))
+                Arguments.of("block node", SimpleBlocker.blockNode(null, Identifier.newInstance(Object.class))),
+                Arguments.of("block leaf", SimpleBlocker.blockLeaf(null, Identifier.newInstance(Object.class))),
+                Arguments.of("block", SimpleBlocker.block(null, Identifier.newInstance(Object.class)))
         );
     }
 
@@ -57,9 +57,9 @@ final class SimpleBlockerTest {
 
     private static Stream<Arguments> Should_DoNothing_When_LeaveNode_Provider() {
         return Stream.of(
-                Arguments.of("block node", SimpleBlocker.blockNode(Identifier.newInstance(Object.class))),
-                Arguments.of("block leaf", SimpleBlocker.blockLeaf(Identifier.newInstance(Object.class))),
-                Arguments.of("block", SimpleBlocker.block(Identifier.newInstance(Object.class)))
+                Arguments.of("block node", SimpleBlocker.blockNode(null, Identifier.newInstance(Object.class))),
+                Arguments.of("block leaf", SimpleBlocker.blockLeaf(null, Identifier.newInstance(Object.class))),
+                Arguments.of("block", SimpleBlocker.block(null, Identifier.newInstance(Object.class)))
         );
     }
 
@@ -79,23 +79,50 @@ final class SimpleBlockerTest {
         final CtsFieldChain leaf = appendPrivateLeaf(root, Object.class, "leaf");
         final CtsFieldChain node = appendPrivateNode(root, Object.class, "node");
 
-        final Blocker leafBlocker = SimpleBlocker.blockLeaf(Identifier.newInstance(Object.class, "leaf"));
-        final Blocker leafBlockerWithoutName = SimpleBlocker.blockLeaf(Identifier.newInstance(Object.class));
-        final Blocker nodeBlocker = SimpleBlocker.blockNode(Identifier.newInstance(Object.class, "node"));
-        final Blocker nodeBlockerWithoutName = SimpleBlocker.blockNode(Identifier.newInstance(Object.class));
-        final Blocker blockerWithLeafName = SimpleBlocker.block(Identifier.newInstance(Object.class, "leaf"));
-        final Blocker blockerWithNodeName = SimpleBlocker.block(Identifier.newInstance(Object.class, "node"));
-        final Blocker blocker = SimpleBlocker.block(Identifier.newInstance(Object.class));
+        final Blocker leafBlocker = SimpleBlocker.blockLeaf(null, Identifier.newInstance(Object.class, "leaf"));
+        final Blocker leafBlockerWithoutName = SimpleBlocker.blockLeaf(null, Identifier.newInstance(Object.class));
+        final Blocker nodeBlocker = SimpleBlocker.blockNode(null, Identifier.newInstance(Object.class, "node"));
+        final Blocker nodeBlockerWithoutName = SimpleBlocker.blockNode(null, Identifier.newInstance(Object.class));
+        final Blocker blockerWithLeafName = SimpleBlocker.block(null, Identifier.newInstance(Object.class, "leaf"));
+        final Blocker blockerWithNodeName = SimpleBlocker.block(null, Identifier.newInstance(Object.class, "node"));
+        final Blocker blocker = SimpleBlocker.block(null, Identifier.newInstance(Object.class));
+
+        final Identifier parentNode = root.head().getIdentifier();
+        final Blocker leafBlockerForNode
+                = SimpleBlocker.blockLeaf(parentNode, Identifier.newInstance(Object.class, "leaf"));
+        final Blocker leafBlockerWithoutNameForNode
+                = SimpleBlocker.blockLeaf(parentNode, Identifier.newInstance(Object.class));
+        final Blocker nodeBlockerForNode
+                = SimpleBlocker.blockNode(parentNode, Identifier.newInstance(Object.class, "node"));
+        final Blocker nodeBlockerWithoutNameForNode
+                = SimpleBlocker.blockNode(parentNode, Identifier.newInstance(Object.class));
+        final Blocker blockerWithLeafNameForNode
+                = SimpleBlocker.block(parentNode, Identifier.newInstance(Object.class, "leaf"));
+        final Blocker blockerWithNodeNameForNode
+                = SimpleBlocker.block(parentNode, Identifier.newInstance(Object.class, "node"));
+        final Blocker blockerForNode
+                = SimpleBlocker.block(parentNode, Identifier.newInstance(Object.class));
+
+        final Blocker invalidParentLeafBlocker
+                = SimpleBlocker.blockLeaf(Identifier.newInstance(Integer.class),
+                Identifier.newInstance(Object.class, "leaf"));
+        final Blocker invalidParentNodeBlocker
+                = SimpleBlocker.blockNode(Identifier.newInstance(Integer.class),
+                Identifier.newInstance(Object.class, "node"));
 
         return Stream.of(
                 Arguments.of("blocking leaf with leaf blocker", leafBlocker, leaf, true),
                 Arguments.of("blocking node with leaf blocker", leafBlocker, node, false),
-                Arguments.of("blocking leaf with leaf blocker without name", leafBlockerWithoutName, leaf, true),
-                Arguments.of("blocking node with leaf blocker without name", leafBlockerWithoutName, node, false),
+                Arguments.of("blocking leaf with leaf blocker without name",
+                        leafBlockerWithoutName, leaf, true),
+                Arguments.of("blocking node with leaf blocker without name",
+                        leafBlockerWithoutName, node, false),
                 Arguments.of("blocking leaf with node blocker", nodeBlocker, leaf, false),
                 Arguments.of("blocking node with node blocker", nodeBlocker, node, true),
-                Arguments.of("blocking leaf with node blocker without name", nodeBlockerWithoutName, leaf, false),
-                Arguments.of("blocking node with node blocker without name", nodeBlockerWithoutName, node, true),
+                Arguments.of("blocking leaf with node blocker without name",
+                        nodeBlockerWithoutName, leaf, false),
+                Arguments.of("blocking node with node blocker without name",
+                        nodeBlockerWithoutName, node, true),
                 Arguments.of("blocking leaf with leaf or node blocker with leaf name",
                         blockerWithLeafName, leaf, true),
                 Arguments.of("blocking node with leaf or node blocker with leaf name",
@@ -105,7 +132,33 @@ final class SimpleBlockerTest {
                 Arguments.of("blocking node with leaf or node blocker with node name",
                         blockerWithNodeName, node, true),
                 Arguments.of("blocking leaf with blocker", blocker, leaf, true),
-                Arguments.of("blocking node with blocker", blocker, leaf, true)
+                Arguments.of("blocking node with blocker", blocker, leaf, true),
+
+                Arguments.of("blocking leaf with leaf blocker for node", leafBlockerForNode, leaf, true),
+                Arguments.of("blocking node with leaf blocker for node", leafBlockerForNode, node, false),
+                Arguments.of("blocking leaf with leaf blocker without name for node",
+                        leafBlockerWithoutNameForNode, leaf, true),
+                Arguments.of("blocking node with leaf blocker without name for node",
+                        leafBlockerWithoutNameForNode, node, false),
+                Arguments.of("blocking leaf with node blocker for node for node", nodeBlockerForNode, leaf, false),
+                Arguments.of("blocking node with node blocker for node", nodeBlockerForNode, node, true),
+                Arguments.of("blocking leaf with node blocker without name for node",
+                        nodeBlockerWithoutNameForNode, leaf, false),
+                Arguments.of("blocking node with node blocker without name for node",
+                        nodeBlockerWithoutNameForNode, node, true),
+                Arguments.of("blocking leaf with leaf or node blocker with leaf name for node",
+                        blockerWithLeafNameForNode, leaf, true),
+                Arguments.of("blocking node with leaf or node blocker with leaf name for node",
+                        blockerWithLeafNameForNode, node, false),
+                Arguments.of("blocking leaf with leaf or node blocker with node name for node",
+                        blockerWithNodeNameForNode, leaf, false),
+                Arguments.of("blocking node with leaf or node blocker with node name for node",
+                        blockerWithNodeNameForNode, node, true),
+                Arguments.of("blocking leaf with blocker for node", blockerForNode, leaf, true),
+                Arguments.of("blocking node with blocker for node", blockerForNode, leaf, true),
+
+                Arguments.of("trying to block leaf bad parent", invalidParentLeafBlocker, leaf, false),
+                Arguments.of("trying to block node with bad parent", invalidParentNodeBlocker, node, false)
         );
     }
 

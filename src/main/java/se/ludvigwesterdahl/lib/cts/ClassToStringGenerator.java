@@ -68,7 +68,9 @@ public final class ClassToStringGenerator {
             visited.add(field);
 
             final CtsName ctsName = field.getAnnotation(CtsName.class);
+
             final Identifier identifier = Identifier.newInstance(field.getType(), field.getName());
+            Class<?> type = field.getType();
             if (ctsName != null && !ReflectionHelper.hasDefaultValues(CtsName.class, ctsName)) {
                 final Class<?> newType = ReflectionHelper.getAnnotationValue(
                         CtsName.class,
@@ -86,11 +88,13 @@ public final class ClassToStringGenerator {
 
                 names.computeIfAbsent(field.getDeclaringClass(), ignored -> new HashMap<>())
                         .put(identifier, renamed);
+                type = newType;
             }
 
             final CtsNode ctsNode = field.getAnnotation(CtsNode.class);
             if (ctsNode != null) {
-                fields.addAll(Arrays.asList(field.getType().getDeclaredFields()));
+                // Using the possibly redirected type.
+                fields.addAll(Arrays.asList(type.getDeclaredFields()));
                 nodes.computeIfAbsent(field.getDeclaringClass(), ignored -> new HashSet<>())
                         .add(identifier);
                 if (ctsNode.embed()) {
