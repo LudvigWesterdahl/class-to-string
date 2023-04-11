@@ -34,15 +34,15 @@ public final class ClassToStringGenerator {
     private final Map<Class<?>, Set<Identifier>> nodes;
     private final Map<Class<?>, Map<Identifier, Identifier>> names;
     private final Map<Class<?>, Set<Identifier>> embeddings;
-    private final Set<Blocker> blockers;
-    private final Set<Observer> observers;
+    private final List<Blocker> blockers;
+    private final List<Observer> observers;
 
     private ClassToStringGenerator(final Class<?> rootNode,
                                    final Map<Class<?>, Set<Identifier>> nodes,
                                    final Map<Class<?>, Map<Identifier, Identifier>> names,
                                    final Map<Class<?>, Set<Identifier>> embeddings,
-                                   final Set<Blocker> blockers,
-                                   final Set<Observer> observers) {
+                                   final List<Blocker> blockers,
+                                   final List<Observer> observers) {
         this.rootNode = rootNode;
         this.nodes = nodes;
         this.names = names;
@@ -109,8 +109,8 @@ public final class ClassToStringGenerator {
                 nodes,
                 names,
                 embeddings,
-                new HashSet<>(),
-                new HashSet<>());
+                new ArrayList<>(),
+                new ArrayList<>());
     }
 
     /**
