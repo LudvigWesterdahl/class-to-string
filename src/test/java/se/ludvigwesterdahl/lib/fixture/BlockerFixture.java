@@ -1,8 +1,8 @@
 package se.ludvigwesterdahl.lib.fixture;
 
-import se.ludvigwesterdahl.lib.cts.Blocker;
 import se.ludvigwesterdahl.lib.cts.CtsFieldChain;
-import se.ludvigwesterdahl.lib.cts.blockers.AbstractBlocker;
+import se.ludvigwesterdahl.lib.cts.blocker.AbstractBlocker;
+import se.ludvigwesterdahl.lib.cts.blocker.Blocker;
 
 public final class BlockerFixture {
 

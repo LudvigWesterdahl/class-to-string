@@ -3,7 +3,7 @@ package se.ludvigwesterdahl.lib.fixture.ctstestcases;
 import se.ludvigwesterdahl.lib.cts.ClassToStringGenerator;
 import se.ludvigwesterdahl.lib.cts.CtsFieldChain;
 import se.ludvigwesterdahl.lib.cts.Identifier;
-import se.ludvigwesterdahl.lib.cts.blockers.LoopBlocker;
+import se.ludvigwesterdahl.lib.cts.blocker.LoopBlocker;
 
 import java.time.LocalDate;
 import java.util.List;

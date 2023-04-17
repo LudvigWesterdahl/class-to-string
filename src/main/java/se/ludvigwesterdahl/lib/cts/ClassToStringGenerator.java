@@ -1,5 +1,6 @@
 package se.ludvigwesterdahl.lib.cts;
 
+import se.ludvigwesterdahl.lib.cts.blocker.Blocker;
 import se.ludvigwesterdahl.lib.cts.strategy.GenerationStrategy;
 
 import java.lang.reflect.Field;

@@ -1,6 +1,5 @@
-package se.ludvigwesterdahl.lib.cts.blockers;
+package se.ludvigwesterdahl.lib.cts.blocker;
 
-import se.ludvigwesterdahl.lib.cts.Blocker;
 import se.ludvigwesterdahl.lib.cts.CtsField;
 import se.ludvigwesterdahl.lib.cts.CtsFieldChain;
 import se.ludvigwesterdahl.lib.cts.Identifier;

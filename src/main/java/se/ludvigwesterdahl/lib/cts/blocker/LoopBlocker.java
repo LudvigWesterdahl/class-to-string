@@ -1,6 +1,5 @@
-package se.ludvigwesterdahl.lib.cts.blockers;
+package se.ludvigwesterdahl.lib.cts.blocker;
 
-import se.ludvigwesterdahl.lib.cts.Blocker;
 import se.ludvigwesterdahl.lib.cts.CtsField;
 import se.ludvigwesterdahl.lib.cts.CtsFieldChain;
 import se.ludvigwesterdahl.lib.cts.Identifier;
@@ -8,7 +7,7 @@ import se.ludvigwesterdahl.lib.cts.Identifier;
 import java.util.Objects;
 
 /**
- * This {@link se.ludvigwesterdahl.lib.cts.Blocker} is used to block repeated traversals into a node. <br/>
+ * This {@link Blocker} is used to block repeated traversals into a node. <br/>
  * Assume A -> B -> C -> B, then that would result in an infinite loop (B -> C -> B).
  */
 public final class LoopBlocker extends AbstractBlocker {
@@ -24,7 +23,7 @@ public final class LoopBlocker extends AbstractBlocker {
 
     /**
      * Blocks a given {@link Identifier} from being encountered more than {@code times}. <br/>
-     * Note that if {@code times == 0} then this is the same as {@link SimpleBlocker#block(Identifier,Identifier)}
+     * Note that if {@code times == 0} then this is the same as {@link SimpleBlocker#block(Identifier, Identifier)}
      * with {@code null} as the parent node.
      *
      * @param blockingPoint the leaf or node that is blocked

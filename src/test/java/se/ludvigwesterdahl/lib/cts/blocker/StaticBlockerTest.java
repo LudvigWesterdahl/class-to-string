@@ -1,10 +1,9 @@
-package se.ludvigwesterdahl.lib.cts.blockers;
+package se.ludvigwesterdahl.lib.cts.blocker;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import se.ludvigwesterdahl.lib.cts.Blocker;
 import se.ludvigwesterdahl.lib.cts.CtsFieldChain;
 
 import java.lang.reflect.Modifier;

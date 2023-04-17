@@ -1,5 +1,7 @@
 package se.ludvigwesterdahl.lib.cts;
 
+import se.ludvigwesterdahl.lib.cts.blocker.Blocker;
+
 public interface Observer {
 
     /**

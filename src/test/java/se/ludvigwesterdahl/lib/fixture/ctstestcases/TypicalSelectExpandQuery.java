@@ -1,8 +1,8 @@
 package se.ludvigwesterdahl.lib.fixture.ctstestcases;
 
 import se.ludvigwesterdahl.lib.cts.*;
-import se.ludvigwesterdahl.lib.cts.blockers.LeafBlocker;
-import se.ludvigwesterdahl.lib.cts.blockers.SimpleBlocker;
+import se.ludvigwesterdahl.lib.cts.blocker.LeafBlocker;
+import se.ludvigwesterdahl.lib.cts.blocker.SimpleBlocker;
 import se.ludvigwesterdahl.lib.cts.strategy.FlatGenerationStrategy;
 
 import java.net.URI;

@@ -1,4 +1,8 @@
-package se.ludvigwesterdahl.lib.cts;
+package se.ludvigwesterdahl.lib.cts.blocker;
+
+import se.ludvigwesterdahl.lib.cts.ClassToStringGenerator;
+import se.ludvigwesterdahl.lib.cts.CtsFieldChain;
+import se.ludvigwesterdahl.lib.cts.Observer;
 
 public interface Blocker extends Observer {
 
