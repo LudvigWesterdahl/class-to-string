@@ -45,6 +45,9 @@ The core of the library is located in
 
 This class serves the purpose of iterating over the given class structure.
 
+In the documentation and library there will be references to nodes and leaf. The difference is that a node
+can be entered and left whereas a leaf can only be consumed.
+
 ### 3. Observer
 This type listens to the generator as it iterates over the class structure. The generator will notify all added
 [Observer.java](src/main/java/se/ludvigwesterdahl/lib/cts/Observer.java)
@@ -111,27 +114,43 @@ can be used which implements all observer methods as no-ops and only requires th
 [Blocker.java](src/main/java/se/ludvigwesterdahl/lib/cts/blocker/Blocker.java).
 
 ##### 3.2.1 Leaf blocker
-TODO
+This blocker will block all leaf.
+
 See [LeafBlocker.java](src/main/java/se/ludvigwesterdahl/lib/cts/blocker/LeafBlocker.java).
 
 ##### 3.2.2 Loop blocker
-TODO
+This blocker is used to ensure that a given node or leaf will not be entered/consumed more than X number of times.
+
 See [LoopBlocker.java](src/main/java/se/ludvigwesterdahl/lib/cts/blocker/LoopBlocker.java).
 
 ##### 3.2.3 Max Depth blocker
-TODO
+This blocker is used to limit the number of nodes that can be entered after a given node.
+
+A typical use case could be that you don't have access to the class being iterated over and after a certain point
+iteration should stop due to unnecessary references to other nodes.
+
 See [MaxDepthBlocker.java](src/main/java/se/ludvigwesterdahl/lib/cts/blocker/MaxDepthBlocker.java).
 
 ##### 3.2.4 Simple blocker
-TODO
+This is used to block a given node or leaf from being entered/consumed. 
+
 See [SimpleBlocker.java](src/main/java/se/ludvigwesterdahl/lib/cts/blocker/SimpleBlocker.java).
 
 ##### 3.2.5 Static blocker
-TODO
+This blocker will block any node or leaf with a `static` modifier.
+
 See [StaticBlocker.java](src/main/java/se/ludvigwesterdahl/lib/cts/blocker/StaticBlocker.java).
 
 ##### 3.2.6 Transient blocker
-TODO
+This blocker will block any node or leaf with a `transient` modifier.
+
+A use case for this blocker is to block the following field added by intellij when running tests with coverage.
+```java
+private static transient int[] __$lineHits$__;
+```
+Although the static blocker presented under section [3.2.5. Static blocker](#325-static-blocker) would also
+block that field.
+
 See [TransientBlocker.java](src/main/java/se/ludvigwesterdahl/lib/cts/blocker/TransientBlocker.java).
 
 ### 4. Samples
