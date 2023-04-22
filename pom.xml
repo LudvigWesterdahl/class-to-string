@@ -6,7 +6,7 @@
 
     <groupId>io.github.ludvigwesterdahl</groupId>
     <artifactId>class-to-string</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <!-- Required for OSSRH -->
     <name>Class to String</name>
