@@ -1,5 +1,5 @@
 # Class To String
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.ludvigwesterdahl/class-to-string/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.ludvigwesterdahl/class-to-string)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.ludvigwesterdahl/class-to-string.svg?label=Maven%20Central&logo=apachemaven)](https://central.sonatype.com/artifact/io.github.ludvigwesterdahl/class-to-string/)
 
 ## General
 This library is used to iterate over a class or record structure.
