@@ -7,8 +7,8 @@ import se.ludvigwesterdahl.lib.cts.Identifier;
 import java.util.Objects;
 
 /**
- * This {@link Blocker} is used to block repeated traversals into a node. <br/>
- * Assume A -> B -> C -> B, then that would result in an infinite loop (B -> C -> B).
+ * This {@link Blocker} is used to block repeated traversals into a node. <br>
+ * Assume {@code A -> B -> C -> B}, then that would result in an infinite loop {@code (B -> C -> B)}.
  */
 public final class LoopBlocker extends AbstractBlocker {
 
@@ -22,7 +22,7 @@ public final class LoopBlocker extends AbstractBlocker {
     }
 
     /**
-     * Blocks a given {@link Identifier} from being encountered more than {@code times}. <br/>
+     * Blocks a given {@link Identifier} from being encountered more than {@code times}. <br>
      * Note that if {@code times == 0} then this is the same as {@link SimpleBlocker#block(Identifier, Identifier)}
      * with {@code null} as the parent node.
      *

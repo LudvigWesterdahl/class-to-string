@@ -74,7 +74,7 @@ public final class Identifier {
     /**
      * Checks if this {@link Identifier} matches another by comparing the type and only comparing the name
      * if both {@link Identifier} has a name. If one is missing a name, it will only compare
-     * the type. <br/>
+     * the type. <br>
      * In other words, if both {@link Identifier} has a name, then this method is the same
      * as calling {@link Identifier#equals(Object)}.
      * <b>Example</b>

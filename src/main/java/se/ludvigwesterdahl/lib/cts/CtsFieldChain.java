@@ -42,7 +42,7 @@ public final class CtsFieldChain {
     }
 
     /**
-     * Returns {@code true} if the head of this chain only contains the root. <br/>
+     * Returns {@code true} if the head of this chain only contains the root. <br>
      * <b>Note</b> that if this returns {@code true} then {@link CtsFieldChain#head()} will contain
      * a field with an {@link Identifier} that does not have a name.
      *

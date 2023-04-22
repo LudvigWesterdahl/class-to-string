@@ -18,10 +18,10 @@ public final class MaxDepthBlocker extends AbstractBlocker {
     }
 
     /**
-     * Stops the traversal after visiting {@code node} and traversing down {@code continueLevels} times. <br/>
+     * Stops the traversal after visiting {@code node} and traversing down {@code continueLevels} times. <br>
      * <ul>
-     *     <li>{@code continueLevels} == 0: enter {@code node} and process the leaf found but not any nodes</li>
-     *     <li>{@code continueLevels} > 0: enter {@code node} and traverse down maximum X levels</li>
+     *     <li>{@code continueLevels == 0}: enter {@code node} and process the leaf found but not any nodes</li>
+     *     <li>{@code continueLevels > 0}: enter {@code node} and traverse down maximum X levels</li>
      * </ul>
      *
      * @param blockingPoint  the node to initiate the blocker from

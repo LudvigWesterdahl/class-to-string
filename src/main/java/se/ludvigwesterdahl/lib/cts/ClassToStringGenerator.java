@@ -18,14 +18,14 @@ import java.util.stream.Collectors;
  *     <li>{@link ClassToStringGenerator#addNode(Class, Identifier)}</li>
  *     <li>{@link ClassToStringGenerator#removeNode(Class, Identifier)}</li>
  * </ul>
- * <br/>
+ * <br>
  * However, the following methods can be used to set the global name, irrespectively of the class
  * which the fields have been specified in.
  * <ul>
  *     <li>{@link ClassToStringGenerator#addName(Identifier, Identifier)}</li>
  *     <li>{@link ClassToStringGenerator#removeName(Identifier)}</li>
  * </ul>
- * <br/>
+ * <br>
  * Because of this, you need to call the first set of "remove" methods if you want to remove
  * the effect of an annotation by code.
  */
@@ -115,9 +115,9 @@ public final class ClassToStringGenerator {
     }
 
     /**
-     * Renames a node or leaf. Multiple calls with the same {@code from} will override the previous calls. <br/>
+     * Renames a node or leaf. Multiple calls with the same {@code from} will override the previous calls. <br>
      * However, if multiple {@code from} {@link Identifier} has been provided where one includes just the type,
-     * and others include a name. Then the most specific one will be preferred. <br/>
+     * and others include a name. Then the most specific one will be preferred. <br>
      * If rename has been provided with a nodeType and one with {@code null}, then the most specific is used.
      *
      * @param nodeType the type of the node,
@@ -143,9 +143,9 @@ public final class ClassToStringGenerator {
     }
 
     /**
-     * Renames a node or leaf. Multiple calls with the same {@code from} will override the previous calls. <br/>
+     * Renames a node or leaf. Multiple calls with the same {@code from} will override the previous calls. <br>
      * However, if multiple {@code from} {@link Identifier} has been provided where one includes just the type,
-     * and others include a name. Then the most specific one will be preferred. <br/>
+     * and others include a name. Then the most specific one will be preferred. <br>
      * Note that this method renames all node or leaf found in any node. If a specific one is required,
      * then use {@link ClassToStringGenerator#addName(Class, Identifier, Identifier)} instead.
      *
@@ -191,7 +191,7 @@ public final class ClassToStringGenerator {
     }
 
     /**
-     * Embeds a node into the parent node when encountered. It will inject all leaf/nodes into that node. <br/>
+     * Embeds a node into the parent node when encountered. It will inject all leaf/nodes into that node. <br>
      *
      * @param type  the class containing the field
      * @param field the field to embed
@@ -276,7 +276,7 @@ public final class ClassToStringGenerator {
     }
 
     /**
-     * Adds a blocker. This method will also call {@link ClassToStringGenerator#addObserver(Observer)}. <br/>
+     * Adds a blocker. This method will also call {@link ClassToStringGenerator#addObserver(Observer)}. <br>
      * If any {@link Blocker} blocks a field from being processed, then the rest will not be called on that field.
      * In other words, it will short-circuit.
      *
