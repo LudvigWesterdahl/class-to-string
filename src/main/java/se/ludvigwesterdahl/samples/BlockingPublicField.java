@@ -67,7 +67,6 @@ public final class BlockingPublicField {
         }
     }
 
-
     public static void main(String[] args) {
         // Creates the generator and adds our custom blocker.
         final ClassToStringGenerator generator = ClassToStringGenerator.from(Car.class)
