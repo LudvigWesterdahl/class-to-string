@@ -1,4 +1,5 @@
 # Class To String
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.ludvigwesterdahl/class-to-string/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.ludvigwesterdahl/class-to-string)
 
 ## General
 This library is used to iterate over a class or record structure.
@@ -9,7 +10,11 @@ Supports java version 11 and above.
 
 **Maven dependency**
 ```
-<TODO>
+<dependency>
+    <groupId>io.github.ludvigwesterdahl</groupId>
+    <artifactId>class-to-string</artifactId>
+    <version>1.0.0</version>
+</dependency>
 ```
 
 Library can be found on [Maven Central](https://google.se).
