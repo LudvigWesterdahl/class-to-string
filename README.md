@@ -17,7 +17,9 @@ Supports java version 11 and above.
 </dependency>
 ```
 
-Library can be found on [Maven Central](https://central.sonatype.com/artifact/io.github.ludvigwesterdahl/class-to-string/).
+Library can be found on
+[MVN Repository](https://mvnrepository.com/artifact/io.github.ludvigwesterdahl/class-to-string)
+and [Maven Central](https://central.sonatype.com/artifact/io.github.ludvigwesterdahl/class-to-string/).
 
 ## Documentation
 
